@@ -1,0 +1,51 @@
+from airflow import DAG
+from airflow.operators.dummy_operator import DummyOperator
+
+from datetime import datetime,timedelta
+
+
+import airflow.settings
+from airflow.models import DagModel
+
+
+
+{%block dag%}
+
+
+dag = DAG(
+dag_id=str({{ "'"~data.dag_id|string~"'" }}).replace(' ','_').replace('.','_Dot_').replace('-','_Dash_'),
+        schedule_interval={{"'@"~data.frequency~"'"}},
+        catchup=False,
+        default_args={
+            'owner': 'LEAP',
+            'depends_on_past': False,
+            'start_date': datetime(2019,12,19,0,0),
+            'retries': 1,
+            'retry_delay': timedelta(minutes=1)
+        },
+)
+
+
+{% endblock %}
+
+
+start = DummyOperator(task_id='start',dag=dag)
+end = DummyOperator(task_id='end',dag=dag)
+
+
+start>>end
+
+{% block unpause%}
+session = airflow.settings.Session()
+try:
+    qry = session.query(DagModel).filter(DagModel.dag_id == dag.dag_id)
+    d = qry.first()
+    d.is_paused = False
+    session.commit()
+except:
+    session.rollback()
+finally:
+    session.close()
+{% endblock %}
+
+

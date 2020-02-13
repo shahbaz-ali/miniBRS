@@ -1,0 +1,10 @@
+**/**/*.pyc
+.idea/
+**/**/__pycache__/
+logs/
+airflow.db
+airflow-webserver.pid
+unittests.cfg
+scratchpad/
+dags/generated/*
+!dags/generated/__init__.py
