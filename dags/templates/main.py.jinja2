@@ -1,6 +1,6 @@
 from airflow import DAG
 from airflow.operators.dummy_operator import DummyOperator
-
+from plugins.vf_leap.operators.servicenow_to_s3_transfer_operator import ServiceNow2S3TransferOperator
 from datetime import datetime,timedelta
 
 
@@ -31,9 +31,10 @@ dag_id=str({{ "'"~data.dag_id|string~"'" }}).replace(' ','_').replace('.','_Dot_
 
 start = DummyOperator(task_id='start',dag=dag)
 end = DummyOperator(task_id='end',dag=dag)
+transfer_dummy = ServiceNow2S3TransferOperator(task_id='transfer_dummy',dag=dag)
 
 
-start>>end
+start>>transfer_dummy>>end
 
 {% block unpause%}
 session = airflow.settings.Session()
