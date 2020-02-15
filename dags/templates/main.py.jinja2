@@ -1,6 +1,14 @@
+#   vf_leap
+#   Copyright (c)Cloud Innovation Partners 2020.
+#   Author : Shahbaz Ali
+
 from airflow import DAG
 from airflow.operators.dummy_operator import DummyOperator
-from plugins.vf_leap.operators.servicenow_to_s3_transfer_operator import ServiceNow2S3TransferOperator
+from airflow.operators.python_operator import PythonOperator, BranchPythonOperator
+from plugins.vf_leap.operators.servicenow_to_s3_transfer_operator import ServiceNowToS3TransferOperator
+from plugins.vf_leap.operators.servicenow_to_sftp_transfer_operator import ServiceNowToSFTPTransferOperator
+
+from plugins.vf_leap.utils.servicenow import fetch_servicenow_record_count
 from datetime import datetime,timedelta
 
 
@@ -19,7 +27,7 @@ dag_id=str({{ "'"~data.dag_id|string~"'" }}).replace(' ','_').replace('.','_Dot_
         default_args={
             'owner': 'LEAP',
             'depends_on_past': False,
-            'start_date': datetime(2019,12,19,0,0),
+            'start_date': datetime(2020,12,19,0,0),
             'retries': 1,
             'retry_delay': timedelta(minutes=1)
         },
@@ -31,10 +39,16 @@ dag_id=str({{ "'"~data.dag_id|string~"'" }}).replace(' ','_').replace('.','_Dot_
 
 start = DummyOperator(task_id='start',dag=dag)
 end = DummyOperator(task_id='end',dag=dag)
-transfer_dummy = ServiceNow2S3TransferOperator(task_id='transfer_dummy',dag=dag)
+record_count = BranchPythonOperator(task_id='fetch_record_count',python_callable=fetch_servicenow_record_count,dag=dag)
+count_less_than_threshold = DummyOperator(task_id='count_within_threshold',dag=dag)
+count_exceeds_threshold = DummyOperator(task_id='count_exceeds_threshold',dag=dag)
+count_equals_zero = DummyOperator(task_id='count_is_zero',dag=dag)
+submission = ServiceNowToSFTPTransferOperator(task_id='send_data_to_submission',dag=dag)
 
 
-start>>transfer_dummy>>end
+start>>record_count>>[count_less_than_threshold,count_exceeds_threshold,count_equals_zero]
+count_less_than_threshold >> submission >> end
+end <<[count_exceeds_threshold,count_equals_zero]
 
 {% block unpause%}
 session = airflow.settings.Session()
