@@ -9,8 +9,9 @@ from airflow.hooks.base_hook import BaseHook
 from airflow.hooks.sqlite_hook import SqliteHook
 from airflow.models import Variable
 from airflow.exceptions import AirflowException
-import json,os,requests
+import json,os,requests,pytz
 from jinja2 import Template
+from datetime import datetime, timedelta
 
 from datetime import datetime
 
@@ -46,6 +47,11 @@ try:
 except AirflowException as e:
     LoggingMixin().log.error("No Connection Found for id 's3_global' !")
 
+# calculate time period of backup
+time_now = datetime.now()
+timezone = pytz.timezone("Etc/UTC")
+to_time = timezone.localize(time_now)
+from_time = to_time + timedelta(days=-1)
 
 dag = DAG(
         dag_id='dag_generator',

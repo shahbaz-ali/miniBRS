@@ -27,23 +27,24 @@ dag_id=str({{ "'"~data.dag_id|string~"'" }}).replace(' ','_').replace('.','_Dot_
         default_args={
             'owner': 'LEAP',
             'depends_on_past': False,
-            'start_date': datetime(2020,12,19,0,0),
+            'start_date': datetime(2020,2,14,0,0),
             'retries': 1,
             'retry_delay': timedelta(minutes=1)
         },
 )
 
+table_name = {{"'"~data.dag_id~"'"}}
 
 {% endblock %}
 
 
 start = DummyOperator(task_id='start',dag=dag)
 end = DummyOperator(task_id='end',dag=dag)
-record_count = BranchPythonOperator(task_id='fetch_record_count',python_callable=fetch_servicenow_record_count,dag=dag)
+record_count = BranchPythonOperator(task_id='fetch_record_count',python_callable=fetch_servicenow_record_count,dag=dag,op_kwargs={'table_name': table_name})
 count_less_than_threshold = DummyOperator(task_id='count_within_threshold',dag=dag)
 count_exceeds_threshold = DummyOperator(task_id='count_exceeds_threshold',dag=dag)
 count_equals_zero = DummyOperator(task_id='count_is_zero',dag=dag)
-submission = ServiceNowToSFTPTransferOperator(task_id='send_data_to_submission',dag=dag)
+submission = ServiceNowToSFTPTransferOperator(task_id='send_data_to_submission',dag=dag,snow_id ='snow_id',config = 'config',sftp_conn_id = 'sftp_global',table = table_name)
 
 
 start>>record_count>>[count_less_than_threshold,count_exceeds_threshold,count_equals_zero]
