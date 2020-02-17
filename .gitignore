@@ -8,6 +8,7 @@ unittests.cfg
 scratchpad/
 dags/generated/*
 !dags/generated/__init__.py
-backup/*
+backup
 airflow.cfg
-vf-leap-env/*
+vf-leap-env
+
