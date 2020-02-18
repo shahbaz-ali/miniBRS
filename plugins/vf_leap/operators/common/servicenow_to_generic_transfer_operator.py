@@ -114,58 +114,41 @@ class ServiceNowToGenericTransferOperator(BaseOperator):
         and generates a file of it.
 
         """
-        try:
-            # Basic Authentication
-            service_now_hook = ServiceNowHook(
-                host=self.snow_host,
-                login=self.snow_login,
-                password=self.snow_password
-            )
-            rs = service_now_hook.api_call(
-                route='{}{}'.format('/api/now/table/', self.table),
-                query_params={
-                    'sysparm_query': "sys_updated_onBETWEENjavascript:gs.dateGenerate('{}','{}')@javascript:gs.dateGenerate('{}','{}')".format(
-                        str(self.from_time.date()),
-                        str(self.from_time.time()),
-                        str(self.to_time.date()),
-                        str(self.to_time.time())
-                    )
-                }
-            )
-            LoggingMixin().log.warning("backup folder :" + self.DIR_BACKUP_PATH)
-            l_dir_backup_path = "{}ServiceNow/{}/".format(self.DIR_BACKUP_PATH,
-                                                          self.table
-                                                          )
+        # Basic Authentication
+        service_now_hook = ServiceNowHook(
+            host=self.snow_host,
+            login=self.snow_login,
+            password=self.snow_password
+        )
+        rs = service_now_hook.api_call(
+            route='{}{}'.format('/api/now/table/', self.table),
+            query_params={
+                'sysparm_query': "sys_updated_onBETWEENjavascript:gs.dateGenerate('{}','{}')@javascript:gs.dateGenerate('{}','{}')".format(
+                    str(self.from_time.date()),
+                    str(self.from_time.time()),
+                    str(self.to_time.date()),
+                    str(self.to_time.time())
+                )
+            }
+        )
+        LoggingMixin().log.warning("backup folder :" + self.DIR_BACKUP_PATH)
+        l_dir_backup_path = "{}ServiceNow/{}/".format(self.DIR_BACKUP_PATH,
+                                                      self.table
+                                                      )
 
-            bk_file_name = '{}_{}_{}.xml'.format(self.table, str(self.from_time), str(self.to_time))
+        bk_file_name = '{}_{}_{}.xml'.format(self.table, str(self.from_time), str(self.to_time))
 
-            bk_file_path = l_dir_backup_path + bk_file_name
+        bk_file_path = l_dir_backup_path + bk_file_name
 
-            r_file_path = l_dir_backup_path.replace(self.DIR_BACKUP_PATH, '/vf_leap/') + bk_file_name
+        r_file_path = l_dir_backup_path.replace(self.DIR_BACKUP_PATH, '/vf_leap/') + bk_file_name
 
-            if not os.path.exists(l_dir_backup_path):
-                os.makedirs(l_dir_backup_path)
+        if not os.path.exists(l_dir_backup_path):
+            os.makedirs(l_dir_backup_path)
 
-            with open(bk_file_path, 'w') as bk:
-                bk.write(rs)
-            self.file_name = bk_file_path
-            return bk_file_path
-
-        except ServiceNowHibernateException as e:
-            self.count_of_records = 0
-            LoggingMixin().log.warning("%s service now instance is hibernated !", str(self.snow_host))
-            return None
-
-        except ServiceNowAPIException as e:
-            self.count_of_records = 0
-            LoggingMixin().log.warning("%s service now api error !", str(self.snow_host))
-            return None
-
-        except Exception as e:
-            self.count_of_records = 0
-            LoggingMixin().log.error("%s service now error ! ", str(self.snow_host))
-            LoggingMixin().log.error("%s", str(print_exc()))
-            return None
+        with open(bk_file_path, 'w') as bk:
+            bk.write(rs)
+        self.file_name = bk_file_path
+        return bk_file_path
 
 
     def execute(self,context):
