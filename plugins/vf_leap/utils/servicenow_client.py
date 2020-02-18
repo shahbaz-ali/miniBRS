@@ -374,10 +374,31 @@ class ServiceNowHibernateException(ServiceNowException):
     '''
     @:exception : ServiceNowHibernateException : denotes instance is hibernated
     '''
-    pass
+    def __init__(self,*args):
+        if args:
+            self.message=args[0]
+        else:
+            self.message='ServiceNow Instance in Hibernated !'
+
+    def __str__(self):
+        if self.message:
+            return "ServiceNowHibernateException, {}".format(self.message)
+        else:
+            return "ServiceNowHibernateException has been raised"
 
 class ServiceNowAPIException(ServiceNowException):
     '''
     @:exception : ServiceNowAPIException : raised when API's error's occur
     '''
-    pass
+
+    def __init__(self, *args):
+        if args:
+            self.message = args[0]
+        else:
+            self.message = 'ServiceNow API Error !'
+
+    def __str__(self):
+        if self.message:
+            return "ServiceNowAPIException, {}".format(self.message)
+        else:
+            return "ServiceNowAPIException has been raised"
