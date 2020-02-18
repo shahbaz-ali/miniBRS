@@ -11,6 +11,7 @@ from airflow.models import Variable
 from airflow.exceptions import AirflowException
 import json, os, requests,pytz
 from plugins.vf_leap.hooks.servicenow_hook import ServiceNowHook
+from plugins.vf_leap.utils.exceptions import ServiceNowConnectionNotFoundException, SFTPConnectionNotFoundException,ConfigVariableNotFoundException
 from plugins.vf_leap.utils.servicenow_client import ServiceNowHibernateException, ServiceNowAPIException
 from datetime import datetime, timedelta
 from airflow import configuration
@@ -37,28 +38,31 @@ class ServiceNowToGenericTransferOperator(BaseOperator):
             sftp_user = None,
             sftp_password = None,
             *args, **kwargs) -> None:
+
+        """
+                Takes ServiceNow connection id named 'conn_id' (an Airflow Connection),
+                Sftp connection id named 'sftp_conn_id' (an Airflow Connection),
+                config named 'config' (an Airflow Variable)
+                and servicenow table name
+
+
+                :param snow_id: An Airflow Connection containing servicenow credentials username,password and host
+                :param sftp_conn_id: An Airflow Connection containing SFTP credentials
+                :param config: An Airflow variable containing confugration regarding servicenow instance like frequency,threshold etc
+                :param table: ServiceNow table name from which data is to be fetched
+                :type snow_id: str
+                :type sftp_conn_id: str
+                :type config: str
+                :type table: str
+                """
+
         super().__init__(*args, **kwargs)
         self.snow_id = snow_id
         self.config = config
         self.table = table
         self.sftp_conn_id = sftp_conn_id
 
-        """
-        Takes ServiceNow connection id named 'conn_id' (an Airflow Connection),
-        Sftp connection id named 'sftp_conn_id' (an Airflow Connection), 
-        config named 'config' (an Airflow Variable)
-        and servicenow table name
 
-
-        :param snow_id: An Airflow Connection containing servicenow credentials username,password and host
-        :param sftp_conn_id: An Airflow Connection containing SFTP credentials 
-        :param config: An Airflow variable containing confugration regarding servicenow instance like frequency,threshold etc
-        :param table: ServiceNow table name from which data is to be fetched
-        :type snow_id: str
-        :type sftp_conn_id: str
-        :type config: str
-        :type table: str
-        """
 
     def pre_execute(self,context):
         """
@@ -74,14 +78,14 @@ class ServiceNowToGenericTransferOperator(BaseOperator):
             self.snow_password = credentials_snow.password
             self.snow_host = credentials_snow.host
         except AirflowException as e:
-            LoggingMixin().log.error("No Connection Found for ServiceNow Instance !")
+            raise ServiceNowConnectionNotFoundException
 
         try:
             # Load Configuration Data
             self.config = json.loads(Variable.get(self.config))
             self.FREQUENCY = self.config['frequency']
         except KeyError as e:
-            LoggingMixin().log.error("No configuration found !")
+            raise ConfigVariableNotFoundException
 
         # calculate time period of backup
         if(self.FREQUENCY == 'hourly'):

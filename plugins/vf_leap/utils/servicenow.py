@@ -3,6 +3,7 @@
 #   Author : Shahbaz Ali
 
 from plugins.vf_leap.hooks.servicenow_hook import ServiceNowHook
+from plugins.vf_leap.utils.exceptions import ServiceNowConnectionNotFoundException, SFTPConnectionNotFoundException,ConfigVariableNotFoundException
 from airflow.utils.log.logging_mixin import LoggingMixin
 from airflow.hooks.base_hook import BaseHook
 from airflow.utils.email import send_email
@@ -39,15 +40,14 @@ def fetch_servicenow_record_count(table_name):
         from_time = to_time + freq_param
 
     except KeyError as e:
-        LoggingMixin().log.error("No configuration found !")
-
+        raise ConfigVariableNotFoundException()
     try:
         credentials_snow = BaseHook.get_connection("snow_id")
         login = credentials_snow.login
         password = credentials_snow.password
         host = credentials_snow.host
     except AirflowException as e:
-        LoggingMixin().log.error("No Connection Found for ServiceNow Instance !")
+        raise ServiceNowConnectionNotFoundException()
 
 
     service_now_hook = ServiceNowHook(
@@ -98,8 +98,11 @@ def email_on_failure(context):
                 context['task_instance'].task_id,
                 context['exception'])
 
-    config = json.loads(Variable.get("config"))
-    email = config['email']
+    try:
+        config = json.loads(Variable.get("config"))
+        email = config['email']
+    except NameError as e:
+        raise ConfigVariableNotFoundException()
 
     send_email(
         to=email,

@@ -87,7 +87,7 @@ if (is_configuration_available and is_storage_available and is_rest_available an
             with open(os.path.dirname(os.path.realpath(__file__))+ '/generated/dag_' + '{}'.format(table).replace(' ','_') + '.py', 'w') as f:
                 f.write(output)
                 new_dags.append('dag_' + '{}'.format(table).replace(' ','_') + '.py')
-    except NameError as e:
+    except AirflowException as e:
         raise ConfigVariableNotFoundException()
 
     l_hook = SqliteHook(sqlite_conn_id = 'sqlite_default')

@@ -4,6 +4,7 @@
 
 
 from plugins.vf_leap.operators.common.servicenow_to_generic_transfer_operator import ServiceNowToGenericTransferOperator
+from plugins.vf_leap.utils.exceptions import SFTPConnectionNotFoundException
 import paramiko,socket
 from airflow.hooks.base_hook import BaseHook
 from airflow.utils.log.logging_mixin import LoggingMixin
@@ -24,7 +25,8 @@ class ServiceNowToSFTPTransferOperator(ServiceNowToGenericTransferOperator):
             self.sftp_password = credentials_sftp.password
             self.sftp_host = credentials_sftp.host
         except AirflowException as e:
-            LoggingMixin().log.error("No Connection Found for id 'sftp_global' !")
+            raise SFTPConnectionNotFoundException
+
 
         l_file_path = self.file_name.replace('.csv', '.json')
         file_name = l_file_path[l_file_path.rfind('/') + 1:]
