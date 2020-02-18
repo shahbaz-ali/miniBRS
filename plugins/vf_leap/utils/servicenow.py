@@ -1,14 +1,14 @@
 #   vf_leap
 #   Copyright (c)Cloud Innovation Partners 2020.
 #   Author : Shahbaz Ali
-from plugins.vf_leap.utils.servicenow_client import ServiceNowHibernateException, ServiceNowAPIException
+
 from plugins.vf_leap.hooks.servicenow_hook import ServiceNowHook
 from airflow.utils.log.logging_mixin import LoggingMixin
 from airflow.hooks.base_hook import BaseHook
-from airflow.hooks.sqlite_hook import SqliteHook
+from airflow.utils.email import send_email
 from airflow.models import Variable
 from airflow.exceptions import AirflowException
-import json, os, requests, pytz
+import json,pytz
 from datetime import datetime,timedelta
 
 def fetch_servicenow_record_count(table_name):
@@ -50,52 +50,59 @@ def fetch_servicenow_record_count(table_name):
         LoggingMixin().log.error("No Connection Found for ServiceNow Instance !")
 
 
-    try:
-        service_now_hook = ServiceNowHook(
-            host=host,
-            login=login,
-            password=password
-        )
-        response = service_now_hook.api_call(
-            route='/api/now/stats/{}'.format(table_name),
-            accept='application/json',
-            query_params={
-                'sysparm_count': 'true',
-                'sysparm_query': "sys_updated_onBETWEENjavascript:gs.dateGenerate('{}','{}')@javascript:gs.dateGenerate('{}','{}')".format(
-                    str(from_time.date()),
-                    str(from_time.time()),
-                    str(to_time.date()),
-                    str(to_time.time())
-                )
-            }
-        )
-        print('response :' + response)
-        count_of_records = int(json.loads(response)['result']['stats']['count'])
+    service_now_hook = ServiceNowHook(
+        host=host,
+        login=login,
+        password=password
+    )
+    response = service_now_hook.api_call(
+        route='/api/now/stats/{}'.format(table_name),
+        accept='application/json',
+        query_params={
+            'sysparm_count': 'true',
+            'sysparm_query': "sys_updated_onBETWEENjavascript:gs.dateGenerate('{}','{}')@javascript:gs.dateGenerate('{}','{}')".format(
+                str(from_time.date()),
+                str(from_time.time()),
+                str(to_time.date()),
+                str(to_time.time())
+            )
+        }
+    )
+    print('response :' + response)
+    count_of_records = int(json.loads(response)['result']['stats']['count'])
 
-        log = LoggingMixin().log
-        log.info("totals number of records %s ", str(count_of_records))
+    log = LoggingMixin().log
+    log.info("totals number of records %s ", str(count_of_records))
 
-        if int(count_of_records) == 0:
-            return 'count_is_zero'
-        elif int(count_of_records) > config['threshold']:
-            return 'count_exceeds_threshold'
-        else:
-            return 'count_within_threshold'
+    if int(count_of_records) == 0:
+        return 'count_is_zero'
+    elif int(count_of_records) > config['threshold']:
+        return 'count_exceeds_threshold'
+    else:
+        return 'count_within_threshold'
 
 
-    except (ServiceNowHibernateException) as e:
-        count_of_records = 0
-        LoggingMixin().log.warning("%s service now instance is hibernated !", str(host))
-        return None
+def email_on_failure(context):
+    """
+        The function that will be executed on failure.
 
-    except ServiceNowAPIException as e:
-        count_of_records = 0
-        LoggingMixin().log.warning("%s service now api error !", str(host))
-        return None
+        :param context: The context of the executed task.
+        :type context: dict
+        """
+    message = '<img src="https://airflow.apache.org/images/feature-image.png" width="400" height="100"/>' \
+              '<h2>AIRFLOW TASK FAILURE:</h2><hr/>'\
+              '<strong>DAG : </strong>    {} <br/><hr/>' \
+              '<strong>TASKS:</strong>  {}<br/><hr/>' \
+              '<strong>Reason:</strong> {}<br/><hr/>' \
+        .format(context['task_instance'].dag_id,
+                context['task_instance'].task_id,
+                context['exception'])
 
-    except Exception as e:
-        count_of_records = 0
-        LoggingMixin().log.error("%s service now error ! ", str(host))
-        LoggingMixin().log.error("%s", str(e))
-        return None
+    config = json.loads(Variable.get("config"))
+    email = config['email']
 
+    send_email(
+        to=email,
+        subject='Airflow',
+        html_content=message
+    )
