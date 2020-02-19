@@ -1,6 +1,6 @@
 #   vf_leap
 #   Copyright (c)Cloud Innovation Partners 2020.
-#   Author : Shahbaz Ali,MAK
+#   Author : MAK
 
 from plugins.vf_leap.operators.common.servicenow_to_generic_transfer_operator import ServiceNowToGenericTransferOperator
 from plugins.vf_leap.utils.exceptions import S3ConnectionNotFoundException
@@ -12,7 +12,7 @@ from datetime import datetime
 from plugins.vf_leap.hooks.amazon_s3_hook import S3HookWrapper
 from botocore.exceptions import ClientError
 
-class ServiceNowToS3TransferOperator(ServiceNowToGenericTransferOperator):
+class ServiceNowToDropboxTransferOperator(ServiceNowToGenericTransferOperator):
 
     def _upload(self,context):
         pass

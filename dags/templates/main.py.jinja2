@@ -44,8 +44,12 @@ record_count = BranchPythonOperator(task_id='fetch_record_count',python_callable
 count_less_than_threshold = DummyOperator(task_id='count_within_threshold',dag=dag)
 count_exceeds_threshold = DummyOperator(task_id='count_exceeds_threshold',dag=dag)
 count_equals_zero = DummyOperator(task_id='count_is_zero',dag=dag)
-submission = ServiceNowToSFTPTransferOperator(task_id='send_data_to_submission',dag=dag,snow_id ='snow_id',config = 'config',sftp_conn_id = 'sftp_global',table = table_name,on_failure_callback=email_on_failure)
 
+{% if data.storage_type == 'SFTP' %}
+submission = ServiceNowToSFTPTransferOperator(task_id='send_data_to_submission',dag=dag,snow_id ='snow_id',config = 'config',storage_conn_id = 'sftp_global',table = table_name,on_failure_callback=email_on_failure)
+{% elif data.storage_type == 'S3' %}
+submission = ServiceNowToS3TransferOperator(task_id='send_data_to_submission',dag=dag,snow_id ='snow_id',config = 'config',storage_conn_id = 's3_global',table = table_name,on_failure_callback=email_on_failure)
+{% endif %}
 
 start>>record_count>>[count_less_than_threshold,count_exceeds_threshold,count_equals_zero]
 count_less_than_threshold >> submission >> end
