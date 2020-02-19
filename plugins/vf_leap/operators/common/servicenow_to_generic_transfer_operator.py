@@ -4,18 +4,15 @@
 
 from airflow.operators.bash_operator import BaseOperator
 from airflow.utils.decorators import apply_defaults
-from airflow.plugins_manager import AirflowPlugin
 from airflow.hooks.base_hook import BaseHook
 from airflow.utils.log.logging_mixin import LoggingMixin
 from airflow.models import Variable
 from airflow.exceptions import AirflowException
-import json, os, requests,pytz
+import json, os,pendulum
 from plugins.vf_leap.hooks.servicenow_hook import ServiceNowHook
-from plugins.vf_leap.utils.exceptions import ServiceNowConnectionNotFoundException, SFTPConnectionNotFoundException,ConfigVariableNotFoundException
-from plugins.vf_leap.utils.servicenow_client import ServiceNowHibernateException, ServiceNowAPIException
+from plugins.vf_leap.utils.exceptions import ServiceNowConnectionNotFoundException,ConfigVariableNotFoundException
 from datetime import datetime, timedelta
 from airflow import configuration
-from traceback import print_exc
 
 class ServiceNowToGenericTransferOperator(BaseOperator):
 
@@ -95,9 +92,7 @@ class ServiceNowToGenericTransferOperator(BaseOperator):
             freq_param = timedelta(days =-1)
         else:
             freq_param = timedelta(hours=-1)
-        time_now = datetime.now()
-        timezone = pytz.timezone("Etc/UTC")
-        self.to_time = timezone.localize(time_now)
+        self.to_time = datetime.now(tz=pendulum.timezone("UTC"))
         self.from_time = self.to_time + freq_param
 
     def _upload(self):

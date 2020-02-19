@@ -9,7 +9,7 @@ from airflow.hooks.base_hook import BaseHook
 from airflow.utils.email import send_email
 from airflow.models import Variable
 from airflow.exceptions import AirflowException
-import json,pytz
+import json,pendulum
 from datetime import datetime,timedelta
 
 def fetch_servicenow_record_count(table_name):
@@ -34,9 +34,7 @@ def fetch_servicenow_record_count(table_name):
         else:
             freq_param = timedelta(hours =-1)
 
-        time_now = datetime.now()
-        timezone = pytz.timezone("Etc/UTC")
-        to_time = timezone.localize(time_now)
+        to_time = datetime.now(tz=pendulum.timezone("UTC"))
         from_time = to_time + freq_param
 
     except KeyError as e:
