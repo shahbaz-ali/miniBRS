@@ -5,6 +5,7 @@
 from plugins.vf_leap.hooks.servicenow_hook import ServiceNowHook
 from plugins.vf_leap.utils.exceptions import ServiceNowConnectionNotFoundException, SFTPConnectionNotFoundException,ConfigVariableNotFoundException
 from airflow.utils.log.logging_mixin import LoggingMixin
+from airflow.settings import Session
 from airflow.hooks.base_hook import BaseHook
 from airflow.utils.email import send_email
 from airflow.models import Variable
@@ -80,9 +81,12 @@ def fetch_servicenow_record_count(table_name):
         return 'count_within_threshold'
 
 
-def email_on_failure(context):
+def on_failure(context):
     """
         The function that will be executed on failure.
+
+        -> Send email
+        -> Save error details as variable
 
         :param context: The context of the executed task.
         :type context: dict
@@ -106,4 +110,13 @@ def email_on_failure(context):
         to=email,
         subject='Airflow',
         html_content=message
+    )
+
+
+    # Adds variable for error info
+
+    Variable.set(
+        key='{}${}'.format(context['task_instance'].execution_date,context['task_instance'].dag_id),
+        value=str(context),
+        session=Session
     )

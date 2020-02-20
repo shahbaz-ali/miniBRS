@@ -8,7 +8,7 @@ from airflow.operators.python_operator import PythonOperator, BranchPythonOperat
 from plugins.vf_leap.operators.servicenow_to_s3_transfer_operator import ServiceNowToS3TransferOperator
 from plugins.vf_leap.operators.servicenow_to_sftp_transfer_operator import ServiceNowToSFTPTransferOperator
 
-from plugins.vf_leap.utils.servicenow import fetch_servicenow_record_count, email_on_failure
+from plugins.vf_leap.utils.servicenow import fetch_servicenow_record_count, on_failure
 from datetime import datetime,timedelta
 
 
@@ -39,12 +39,12 @@ table_name = {{"'"~data.dag_id~"'"}}
 
 
 start = DummyOperator(task_id='start',dag=dag)
-end = DummyOperator(task_id='end',dag=dag)
-record_count = BranchPythonOperator(task_id='fetch_record_count',python_callable=fetch_servicenow_record_count,dag=dag,op_kwargs={'table_name': table_name},on_failure_callback=email_on_failure)
+end = DummyOperator(task_id='end',dag=dag,trigger_rule='none_failed')
+record_count = BranchPythonOperator(task_id='fetch_record_count',python_callable=fetch_servicenow_record_count,dag=dag,op_kwargs={'table_name': table_name},on_failure_callback=on_failure)
 count_less_than_threshold = DummyOperator(task_id='count_within_threshold',dag=dag)
 count_exceeds_threshold = DummyOperator(task_id='count_exceeds_threshold',dag=dag)
 count_equals_zero = DummyOperator(task_id='count_is_zero',dag=dag)
-submission = ServiceNowToSFTPTransferOperator(task_id='send_data_to_submission',dag=dag,snow_id ='snow_id',config = 'config',sftp_conn_id = 'sftp_global',table = table_name,on_failure_callback=email_on_failure)
+submission = ServiceNowToSFTPTransferOperator(task_id='send_data_to_submission',dag=dag,snow_id ='snow_id',config = 'config',sftp_conn_id = 'sftp_global',table = table_name,on_failure_callback=on_failure)
 
 
 start>>record_count>>[count_less_than_threshold,count_exceeds_threshold,count_equals_zero]
