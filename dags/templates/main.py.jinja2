@@ -7,6 +7,7 @@ from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.python_operator import PythonOperator, BranchPythonOperator
 from plugins.vf_leap.operators.servicenow_to_s3_transfer_operator import ServiceNowToS3TransferOperator
 from plugins.vf_leap.operators.servicenow_to_sftp_transfer_operator import ServiceNowToSFTPTransferOperator
+from plugins.vf_leap.operators.servicenow_to_dropbox_transfer_operator import ServiceNowToDropboxTransferOperator
 
 from plugins.vf_leap.utils.servicenow import fetch_servicenow_record_count, email_on_failure
 from datetime import datetime,timedelta
@@ -49,7 +50,12 @@ count_equals_zero = DummyOperator(task_id='count_is_zero',dag=dag)
 submission = ServiceNowToSFTPTransferOperator(task_id='send_data_to_submission',dag=dag,snow_id ='snow_id',config = 'config',storage_conn_id = 'sftp_global',table = table_name,on_failure_callback=email_on_failure)
 {% elif data.storage_type == 'S3' %}
 submission = ServiceNowToS3TransferOperator(task_id='send_data_to_submission',dag=dag,snow_id ='snow_id',config = 'config',storage_conn_id = 's3_global',table = table_name,on_failure_callback=email_on_failure)
+
+{% elif data.storage_type == 'DROPBOX' %}
+submission = ServiceNowToDropboxTransferOperator(task_id='send_data_to_submission',dag=dag,snow_id ='snow_id',config = 'config',storage_conn_id = 'dropbox_global',table = table_name,on_failure_callback=email_on_failure)
 {% endif %}
+
+
 
 start>>record_count>>[count_less_than_threshold,count_exceeds_threshold,count_equals_zero]
 count_less_than_threshold >> submission >> end

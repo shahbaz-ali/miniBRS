@@ -61,7 +61,6 @@ class S3ConnectionNotFoundException(AirflowException):
             return "S3ConnectionNotFoundException has been raised"
 
 
-
 class ConfigVariableNotFoundException(AirflowException):
     '''
     @:exception: ConfigVariableNotFoundException, raised if no variable
@@ -141,3 +140,20 @@ class AirflowAPICredentialsNotFoundException(AirflowException):
             return "AirflowAPICredentialsNotFoundException has been raised"
 
 
+class DropboxConnectionNotFoundException(AirflowException):
+    '''
+    @:exception: DropboxConnectionNotFoundException, raised if no connection
+    with connection id 'dropbox_global' is found in the meta-database
+    '''
+
+    def __init__(self, *args):
+        if args:
+            self.message = args[0]
+        else:
+            self.message = "No connection with id 'dropbox_global' defined"
+
+    def __str__(self):
+        if self.message:
+            return "DropboxConnectionNotFoundException, {}".format(self.message)
+        else:
+            return "DropboxConnectionNotFoundException has been raised"

@@ -10,7 +10,8 @@ from airflow.hooks.sqlite_hook import SqliteHook
 from airflow.models import Variable
 from plugins.vf_leap.utils.exceptions import AirflowException,ServiceNowConnectionNotFoundException,\
     S3ConnectionNotFoundException,ConfigVariableNotFoundException,AirflowAPICredentialsNotFoundException,\
-    SFTPConnectionNotFoundException,StorageTypeNotFoundException,InvalidStorageTypeException
+    SFTPConnectionNotFoundException,StorageTypeNotFoundException,\
+    InvalidStorageTypeException,DropboxConnectionNotFoundException
 import json,os,requests,pytz
 from jinja2 import Template
 from datetime import datetime, timedelta
@@ -50,7 +51,7 @@ try:
     config = json.loads(Variable.get("config"))
     is_configuration_available = True
 except KeyError as e:
-    raise ConfigVariableNotFoundException
+    raise ConfigVariableNotFoundException()
 
 #get storage Type from config
 try:
@@ -71,9 +72,18 @@ try:
             credentials_s3 = BaseHook.get_connection('s3_global')
             is_storage_available = True
         except AirflowException as e:
-            raise S3ConnectionNotFoundException
+            raise S3ConnectionNotFoundException()
+
+
+    elif storage_type == 'DROPBOX':
+        # dropbox Connection details
+        try:
+            credentials_dropbox = BaseHook.get_connection('dropbox_global')
+            is_storage_available = True
+        except AirflowException as e:
+            raise DropboxConnectionNotFoundException()
     else:
-        raise InvalidStorageTypeException
+        raise InvalidStorageTypeException()
 
 except KeyError as e:
     raise StorageTypeNotFoundException
