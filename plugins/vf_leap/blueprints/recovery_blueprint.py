@@ -5,4 +5,4 @@
 
 from flask import Blueprint
 
-RecoveryBlueprint = Blueprint("recovery",__name__,template_folder="../templates")
+RecoveryBlueprint = Blueprint("recovery",__name__,template_folder="templates")
