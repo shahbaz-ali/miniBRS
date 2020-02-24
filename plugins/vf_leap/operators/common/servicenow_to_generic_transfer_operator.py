@@ -16,6 +16,7 @@ from airflow import configuration
 
 class ServiceNowToGenericTransferOperator(BaseOperator):
 
+    template_fields = ('execution_date',)
     FREQUENCY = 'hourly'
     DIR_BACKUP_PATH = configuration.get('leap_core', 'project_folder') + '/backup/'
 
@@ -26,6 +27,7 @@ class ServiceNowToGenericTransferOperator(BaseOperator):
             config,
             table,
             sftp_conn_id,
+            execution_date = None,
             snow_login = None,
             snow_password = None,
             snow_host = None,
@@ -58,7 +60,7 @@ class ServiceNowToGenericTransferOperator(BaseOperator):
         self.config = config
         self.table = table
         self.sftp_conn_id = sftp_conn_id
-
+        self.execution_date = execution_date
 
 
     def pre_execute(self,context):
@@ -92,7 +94,17 @@ class ServiceNowToGenericTransferOperator(BaseOperator):
             freq_param = timedelta(days =-1)
         else:
             freq_param = timedelta(hours=-1)
-        self.to_time = datetime.now(tz=pendulum.timezone("UTC"))
+        execution_datetime = datetime.strptime(self.execution_date[:-6], "%Y-%m-%dT%H:%M:%S")
+
+        self.to_time = datetime(
+            year=execution_datetime.year,
+            month=execution_datetime.month,
+            day=execution_datetime.day,
+            hour=execution_datetime.hour,
+            minute=execution_datetime.minute,
+            second=execution_datetime.second,
+            tzinfo=pendulum.timezone("UTC")
+        )
         self.from_time = self.to_time + freq_param
 
     def _upload(self):

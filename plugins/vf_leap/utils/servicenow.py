@@ -13,7 +13,7 @@ from airflow.exceptions import AirflowException
 import json,pendulum
 from datetime import datetime,timedelta
 
-def fetch_servicenow_record_count(table_name):
+def fetch_servicenow_record_count(table_name,execution_date):
     """
     This method calls the servicenow api for a particular table and timeperiod
     and gets count of records for a particular table
@@ -35,7 +35,17 @@ def fetch_servicenow_record_count(table_name):
         else:
             freq_param = timedelta(hours =-1)
 
-        to_time = datetime.now(tz=pendulum.timezone("UTC"))
+        execution_datetime = datetime.strptime(execution_date[:-6], "%Y-%m-%dT%H:%M:%S")
+
+        to_time = datetime(
+            year=execution_datetime.year,
+            month=execution_datetime.month,
+            day=execution_datetime.day,
+            hour=execution_datetime.hour,
+            minute=execution_datetime.minute,
+            second=execution_datetime.second,
+            tzinfo=pendulum.timezone("UTC")
+        )
         from_time = to_time + freq_param
 
     except KeyError as e:
@@ -80,25 +90,22 @@ def fetch_servicenow_record_count(table_name):
     else:
         return 'count_within_threshold'
 
+def on_failure_email(dag_id,task_id,message):
+    '''
+    This function is used to send an email to the registered email id
+    in the configuration variable 'config'
+    :param dag_id: str, name of the dag
+    :param task_id: str, name of the task which failed
+    :param message: str, exception trace that lead to the failure
+    :return: None
+    '''
 
-def on_failure(context):
-    """
-        The function that will be executed on failure.
-
-        -> Send email
-        -> Save error details as variable
-
-        :param context: The context of the executed task.
-        :type context: dict
-        """
     message = '<img src="https://airflow.apache.org/images/feature-image.png" width="400" height="100"/>' \
-              '<h2>AIRFLOW TASK FAILURE:</h2><hr/>'\
+              '<h2>AIRFLOW TASK FAILURE:</h2><hr/>' \
               '<strong>DAG : </strong>    {} <br/><hr/>' \
               '<strong>TASKS:</strong>  {}<br/><hr/>' \
               '<strong>Reason:</strong> {}<br/><hr/>' \
-        .format(context['task_instance'].dag_id,
-                context['task_instance'].task_id,
-                context['exception'])
+        .format(dag_id,task_id,message)
 
     try:
         config = json.loads(Variable.get("config"))
@@ -108,15 +115,65 @@ def on_failure(context):
 
     send_email(
         to=email,
-        subject='Airflow',
+        subject='Airflow Notification',
         html_content=message
     )
 
+def on_failure_context(dag_id,task_id,execution_date,msg,run_id):
 
-    # Adds variable for error info
+    '''
+    This function is used to save the error information as a variable in the
+    variable's table of the airflow meta database.
+
+    :param dag_id: str, name of the dag_id
+    :param task_id: str, name of the failing task
+    :param execution_date: str, dag time execution
+    :param msg: str, exception name that lead to the failure
+    :return: None
+    '''
+
+    key = '{}${}'.format(execution_date, dag_id)
+
+    value = {
+        'dag_id' : dag_id,
+        'execution_date' : execution_date,
+        'task_id' : task_id,
+        'run_id' : run_id,
+        'error_msg' : msg
+    }
 
     Variable.set(
-        key='{}${}'.format(context['task_instance'].execution_date,context['task_instance'].dag_id),
-        value=str(context),
+        key=key,
+        value=json.dumps(value),
         session=Session
+    )
+
+
+def on_failure(context):
+
+    '''
+    This is a callback function used by the Task's to notify failure events
+    :param context: context of the task execution object
+    :return:
+    '''
+
+    instance = context['task_instance']
+    dag_id = str(instance.dag_id)
+    task_id = str(instance.task_id)
+    msg = str(context['exception'])
+    execution_date = str(instance.execution_date)
+    run_id = str(context['run_id'])
+
+    on_failure_context(
+        dag_id = dag_id,
+        task_id= task_id,
+        execution_date= execution_date,
+        msg= msg,
+        run_id=run_id
+    )
+
+    on_failure_email(
+        dag_id=dag_id,
+        task_id=task_id,
+        message=msg
     )
