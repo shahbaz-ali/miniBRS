@@ -94,7 +94,7 @@ class ServiceNowToGenericTransferOperator(BaseOperator):
             freq_param = timedelta(days =-1)
         else:
             freq_param = timedelta(hours=-1)
-        execution_datetime = datetime.strptime(self.execution_date[:-6], "%Y-%m-%dT%H:%M:%S")
+        execution_datetime = datetime.strptime(self.execution_date[:19], "%Y-%m-%dT%H:%M:%S")
 
         self.to_time = datetime(
             year=execution_datetime.year,

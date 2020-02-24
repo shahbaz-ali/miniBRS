@@ -35,7 +35,7 @@ def fetch_servicenow_record_count(table_name,execution_date):
         else:
             freq_param = timedelta(hours =-1)
 
-        execution_datetime = datetime.strptime(execution_date[:-6], "%Y-%m-%dT%H:%M:%S")
+        execution_datetime = datetime.strptime(execution_date[:19], "%Y-%m-%dT%H:%M:%S")
 
         to_time = datetime(
             year=execution_datetime.year,
