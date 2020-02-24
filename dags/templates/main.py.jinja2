@@ -25,7 +25,7 @@ dag_id=str({{ "'"~data.dag_id|string~"'" }}).replace(' ','_').replace('.','_Dot_
         schedule_interval={{"'@"~data.frequency~"'"}},
         catchup=False,
         default_args={
-            'owner': 'LEAP',
+            'owner': 'BRS',
             'depends_on_past': False,
             'start_date': datetime(2020,2,14,0,0),
             'retries': 1,
