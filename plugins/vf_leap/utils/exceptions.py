@@ -8,14 +8,14 @@ class ServiceNowConnectionNotFoundException(AirflowException):
 
     '''
     @:exception: ServiceNowConnectionNotFoundException, raised if no connection
-    with connection id 'snow_id' is found in the meta-database
+    with connection id 'servicenow_default' is found in the meta-database
     '''
 
     def __init__(self,*args):
         if args:
             self.message = args[0]
         else:
-            self.message = "No connection with id 'snow_id' defined"
+            self.message = "No connection with id 'servicenow_default' defined"
 
     def __str__(self):
         if self.message:
@@ -27,14 +27,14 @@ class ServiceNowConnectionNotFoundException(AirflowException):
 class SFTPConnectionNotFoundException(AirflowException):
     '''
     @:exception: SFTPConnectionNotFoundException, raised if no connection
-    with connection id 'sftp_global' is found in the meta-database
+    with connection id 'sftp_default' is found in the meta-database
     '''
 
     def __init__(self, *args):
         if args:
             self.message = args[0]
         else:
-            self.message = "No connection with id 'sftp_global' defined"
+            self.message = "No connection with id 'sftp_default' defined"
 
     def __str__(self):
         if self.message:
@@ -44,15 +44,15 @@ class SFTPConnectionNotFoundException(AirflowException):
 
 class S3ConnectionNotFoundException(AirflowException):
     '''
-    @:exception: SFTPConnectionNotFoundException, raised if no connection
-    with connection id 'sftp_global' is found in the meta-database
+    @:exception: S3ConnectionNotFoundException, raised if no connection
+    with connection id 's3_default' is found in the meta-database
     '''
 
     def __init__(self, *args):
         if args:
             self.message = args[0]
         else:
-            self.message = "No connection with id 's3_global' defined"
+            self.message = "No connection with id 's3_default' defined"
 
     def __str__(self):
         if self.message:
@@ -143,14 +143,14 @@ class AirflowAPICredentialsNotFoundException(AirflowException):
 class DropboxConnectionNotFoundException(AirflowException):
     '''
     @:exception: DropboxConnectionNotFoundException, raised if no connection
-    with connection id 'dropbox_global' is found in the meta-database
+    with connection id 'dropbox_default' is found in the meta-database
     '''
 
     def __init__(self, *args):
         if args:
             self.message = args[0]
         else:
-            self.message = "No connection with id 'dropbox_global' defined"
+            self.message = "No connection with id 'dropbox_default' defined"
 
     def __str__(self):
         if self.message:

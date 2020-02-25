@@ -28,7 +28,7 @@ is_rest_available = False
 
 #ServiceNow Connection details
 try:
-    credentials_snow = BaseHook.get_connection('snow_id')
+    credentials_snow = BaseHook.get_connection('servicenow_default')
     login = credentials_snow.login
     passcode = credentials_snow.password
     host = credentials_snow.host
@@ -56,29 +56,30 @@ except KeyError as e:
 #get storage Type from config
 try:
     storage_type = config['storage_type']
+    storage_type = str(storage_type).lower()
 
-    if storage_type == 'SFTP':
+    if storage_type == 'sftp':
 
         try:
             #Load SFTP storage_credentials
-            credentials_sftp = BaseHook.get_connection('sftp_global')
+            credentials_sftp = BaseHook.get_connection('sftp_default')
             is_storage_available = True
         except AirflowException as e:
             raise SFTPConnectionNotFoundException()
 
-    elif storage_type == 'S3':
+    elif storage_type == 's3':
         try:
             # Load S3 storage_credentials
-            credentials_s3 = BaseHook.get_connection('s3_global')
+            credentials_s3 = BaseHook.get_connection('s3_default')
             is_storage_available = True
         except AirflowException as e:
             raise S3ConnectionNotFoundException()
 
 
-    elif storage_type == 'DROPBOX':
+    elif storage_type == 'dropbox':
         # dropbox Connection details
         try:
-            credentials_dropbox = BaseHook.get_connection('dropbox_global')
+            credentials_dropbox = BaseHook.get_connection('dropbox_default')
             is_storage_available = True
         except AirflowException as e:
             raise DropboxConnectionNotFoundException()
@@ -88,11 +89,6 @@ try:
 except KeyError as e:
     raise StorageTypeNotFoundException
 
-# calculate time period of backup
-time_now = datetime.now()
-timezone = pytz.timezone("Etc/UTC")
-to_time = timezone.localize(time_now)
-from_time = to_time + timedelta(days=-1)
 
 dag = DAG(
         dag_id='dag_generator',
@@ -101,8 +97,6 @@ dag = DAG(
         start_date=datetime(2020, 11, 1),
         catchup=False
 )
-
-
 
 if (is_configuration_available and is_storage_available and is_rest_available and is_servicenow_available) :
     new_dags= []

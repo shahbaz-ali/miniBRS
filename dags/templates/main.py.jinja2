@@ -7,11 +7,11 @@ from airflow import DAG
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.python_operator import PythonOperator, BranchPythonOperator
 
-{% if data.storage_type == 'SFTP' %}
+{% if data.storage_type == 'sftp' %}
 from plugins.vf_leap.operators.servicenow_to_sftp_transfer_operator import ServiceNowToSFTPTransferOperator
-{% elif data.storage_type == 'S3' %}
+{% elif data.storage_type == 's3' %}
 from plugins.vf_leap.operators.servicenow_to_s3_transfer_operator import ServiceNowToS3TransferOperator
-{% elif data.storage_type == 'DROPBOX' %}
+{% elif data.storage_type == 'dropbox' %}
 from plugins.vf_leap.operators.servicenow_to_dropbox_transfer_operator import ServiceNowToDropboxTransferOperator
 {% endif %}
 
@@ -55,13 +55,13 @@ count_less_than_threshold = DummyOperator(task_id='count_within_threshold',dag=d
 count_exceeds_threshold = DummyOperator(task_id='count_exceeds_threshold',dag=dag)
 count_equals_zero = DummyOperator(task_id='count_is_zero',dag=dag)
 
-{% if data.storage_type == 'SFTP' %}
-submission = ServiceNowToSFTPTransferOperator(task_id='send_data_to_submission',dag=dag,snow_id ='snow_id',config = 'config',storage_conn_id = 'sftp_global',table = table_name,execution_date=dag.params.get('execution_date'),on_failure_callback=on_failure)
-{% elif data.storage_type == 'S3' %}
-submission = ServiceNowToS3TransferOperator(task_id='send_data_to_submission',dag=dag,snow_id ='snow_id',config = 'config',storage_conn_id = 's3_global',table = table_name,execution_date=dag.params.get('execution_date'),on_failure_callback=on_failure)
+{% if data.storage_type == 'sftp' %}
+submission = ServiceNowToSFTPTransferOperator(task_id='send_data_to_submission',dag=dag,snow_id ='servicenow_default',config = 'config',storage_conn_id = 'sftp_default',table = table_name,execution_date=dag.params.get('execution_date'),on_failure_callback=on_failure)
+{% elif data.storage_type == 's3' %}
+submission = ServiceNowToS3TransferOperator(task_id='send_data_to_submission',dag=dag,snow_id ='servicenow_default',config = 'config',storage_conn_id = 's3_default',table = table_name,execution_date=dag.params.get('execution_date'),on_failure_callback=on_failure)
 
-{% elif data.storage_type == 'DROPBOX' %}
-submission = ServiceNowToDropboxTransferOperator(task_id='send_data_to_submission',dag=dag,snow_id ='snow_id',config = 'config',storage_conn_id = 'dropbox_global',table = table_name,execution_date=dag.params.get('execution_date'),on_failure_callback=on_failure)
+{% elif data.storage_type == 'dropbox' %}
+submission = ServiceNowToDropboxTransferOperator(task_id='send_data_to_submission',dag=dag,snow_id ='servicenow_default',config = 'config',storage_conn_id = 'dropbox_default',table = table_name,execution_date=dag.params.get('execution_date'),on_failure_callback=on_failure)
 {% endif %}
 
 

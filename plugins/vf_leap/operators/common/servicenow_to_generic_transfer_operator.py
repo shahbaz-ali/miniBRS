@@ -93,6 +93,9 @@ class ServiceNowToGenericTransferOperator(BaseOperator):
         if(self.FREQUENCY == 'hourly'):
             freq_param = timedelta(hours=-1)
 
+        elif (self.FREQUENCY == 'half-hourly'):
+            freq_param = timedelta(minutes=-30)
+
         elif(self.FREQUENCY == 'daily'):
             freq_param = timedelta(days =-1)
         else:

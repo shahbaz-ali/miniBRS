@@ -51,7 +51,7 @@ def fetch_servicenow_record_count(table_name,execution_date):
     except KeyError as e:
         raise ConfigVariableNotFoundException()
     try:
-        credentials_snow = BaseHook.get_connection("snow_id")
+        credentials_snow = BaseHook.get_connection("servicenow_default")
         login = credentials_snow.login
         password = credentials_snow.password
         host = credentials_snow.host

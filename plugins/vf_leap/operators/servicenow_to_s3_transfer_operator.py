@@ -39,8 +39,8 @@ class ServiceNowToS3TransferOperator(ServiceNowToGenericTransferOperator):
 
         try:
             s3_hook = S3HookWrapper(
-                aws_secret_key_id=credentials_s3.secret_key.decode('utf-8'),
-                aws_access_key_id=credentials_s3.access_key.decode('utf-8')
+                aws_secret_key_id=credentials_s3.login,
+                aws_access_key_id=credentials_s3.password
             )
 
             if s3_hook._check_aws_credentails():
