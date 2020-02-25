@@ -11,6 +11,9 @@ from wtforms import validators
 from airflow.utils import timezone
 from airflow.utils.state import State
 from airflow.utils.db import provide_session
+from airflow.utils.log.logging_mixin import LoggingMixin
+from airflow.models.variable import Variable
+import json
 import datetime as dt
 
 
@@ -85,8 +88,47 @@ class RecoveryDashboard(ModelView):
     @action('trigger_dag','Trigger DAG','Are you sure you want to re-run this dag, you can run this dag only once, make sure all dependencies are met')
     @provide_session
 
-    def trigger_dag(self):
-        pass
+    def trigger_dag(self,ids,session=None):
+
+        rows = session.query(FailedDagRun).filter(FailedDagRun.id.in_(ids)).all()
+
+        try:
+            r_config = Variable.get(key='r_config')
+            r_obj = json.loads(r_config)
+
+            for d in rows:
+                if r_obj.__contains__(d.dag_id):
+                    if not (r_obj[d.dag_id]).__contains__(str(d.execution_date)):
+                        r_obj[d.dag_id].append(str(d.execution_date))
+                    else:
+                        pass
+                else:
+                    r_obj[d.dag_id] = [str(d.execution_date)]
+
+            Variable.set(key='r_config',value=json.dumps(r_obj))
+        except KeyError as e:
+            LoggingMixin().log.warn(e.__str__())
+            Variable.set(key='r_config',value='{}')
+            self.create_r_config(ids,session)
+
+
+
+    def create_r_config(self,ids,session):
+
+        rows = session.query(FailedDagRun).filter(FailedDagRun.id.in_(ids)).all()
+
+        r_obj = {}
+
+        for d in rows:
+            # if r_obj.__contains__(d.dag_id):
+            #     if not (r_obj[d.dag_id]).__contains__(d.execution_date):
+            #         r_obj[d.dag_id].append(str(d.execution_date))
+            # else:
+            r_obj[d.dag_id] = [str(d.execution_date)]
+
+        Variable.set(key='r_config', value=json.dumps(r_obj))
+
+
 
     def get_query(self):
         """
