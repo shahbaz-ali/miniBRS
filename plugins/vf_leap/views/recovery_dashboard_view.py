@@ -5,10 +5,12 @@
 from flask_admin import expose
 from flask import Markup
 from flask_admin.contrib.sqla import ModelView
+from flask_admin.actions import action
 from plugins.vf_leap.modals.recovery_modals import FailedDagRun, Reason
 from wtforms import validators
 from airflow.utils import timezone
 from airflow.utils.state import State
+from airflow.utils.db import provide_session
 import datetime as dt
 
 
@@ -80,6 +82,11 @@ class RecoveryDashboard(ModelView):
         failure_reason = reason_f
     )
 
+    @action('trigger_dag','Trigger DAG','Are you sure you want to re-run this dag, you can run this dag only once, make sure all dependencies are met')
+    @provide_session
+
+    def trigger_dag(self):
+        pass
 
     def get_query(self):
         """
