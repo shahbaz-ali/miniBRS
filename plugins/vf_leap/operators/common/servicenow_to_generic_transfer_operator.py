@@ -25,7 +25,7 @@ class ServiceNowToGenericTransferOperator(BaseOperator):
             snow_id,
             config,
             table,
-            sftp_conn_id,
+            storage_conn_id,
             snow_login = None,
             snow_password = None,
             snow_host = None,
@@ -34,21 +34,22 @@ class ServiceNowToGenericTransferOperator(BaseOperator):
             sftp_host = None,
             sftp_user = None,
             sftp_password = None,
+            storage_type = None,
             *args, **kwargs) -> None:
 
         """
                 Takes ServiceNow connection id named 'conn_id' (an Airflow Connection),
-                Sftp connection id named 'sftp_conn_id' (an Airflow Connection),
+                Storage connection id named 'storage_conn_id' (an Airflow Connection) defining storage credentials,
                 config named 'config' (an Airflow Variable)
                 and servicenow table name
 
 
                 :param snow_id: An Airflow Connection containing servicenow credentials username,password and host
-                :param sftp_conn_id: An Airflow Connection containing SFTP credentials
+                :param storage_conn_id: An Airflow Connection containing SFTP credentials
                 :param config: An Airflow variable containing confugration regarding servicenow instance like frequency,threshold etc
                 :param table: ServiceNow table name from which data is to be fetched
                 :type snow_id: str
-                :type sftp_conn_id: str
+                :type storage_conn_id: str
                 :type config: str
                 :type table: str
                 """
@@ -57,7 +58,7 @@ class ServiceNowToGenericTransferOperator(BaseOperator):
         self.snow_id = snow_id
         self.config = config
         self.table = table
-        self.sftp_conn_id = sftp_conn_id
+        self.storage_conn_id = storage_conn_id
 
 
 
@@ -81,6 +82,7 @@ class ServiceNowToGenericTransferOperator(BaseOperator):
             # Load Configuration Data
             self.config = json.loads(Variable.get(self.config))
             self.FREQUENCY = self.config['frequency']
+            self.storage_type = self.config['storage_type']
         except KeyError as e:
             raise ConfigVariableNotFoundException
 

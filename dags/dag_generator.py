@@ -8,7 +8,10 @@ from airflow.utils.log.logging_mixin import LoggingMixin
 from airflow.hooks.base_hook import BaseHook
 from airflow.hooks.sqlite_hook import SqliteHook
 from airflow.models import Variable
-from plugins.vf_leap.utils.exceptions import AirflowException, ServiceNowConnectionNotFoundException, ConfigVariableNotFoundException,AirflowAPICredentialsNotFoundException,SFTPConnectionNotFoundException
+from plugins.vf_leap.utils.exceptions import AirflowException,ServiceNowConnectionNotFoundException,\
+    S3ConnectionNotFoundException,ConfigVariableNotFoundException,AirflowAPICredentialsNotFoundException,\
+    SFTPConnectionNotFoundException,StorageTypeNotFoundException,\
+    InvalidStorageTypeException,DropboxConnectionNotFoundException
 import json,os,requests,pytz
 from jinja2 import Template
 from datetime import datetime, timedelta
@@ -50,13 +53,40 @@ try:
 except KeyError as e:
     raise ConfigVariableNotFoundException()
 
-
+#get storage Type from config
 try:
-    #Load SFTP storage_credentials
-    credentials_sftp = BaseHook.get_connection('sftp_global')
-    is_storage_available = True
-except AirflowException as e:
-    raise SFTPConnectionNotFoundException()
+    storage_type = config['storage_type']
+
+    if storage_type == 'SFTP':
+
+        try:
+            #Load SFTP storage_credentials
+            credentials_sftp = BaseHook.get_connection('sftp_global')
+            is_storage_available = True
+        except AirflowException as e:
+            raise SFTPConnectionNotFoundException()
+
+    elif storage_type == 'S3':
+        try:
+            # Load S3 storage_credentials
+            credentials_s3 = BaseHook.get_connection('s3_global')
+            is_storage_available = True
+        except AirflowException as e:
+            raise S3ConnectionNotFoundException()
+
+
+    elif storage_type == 'DROPBOX':
+        # dropbox Connection details
+        try:
+            credentials_dropbox = BaseHook.get_connection('dropbox_global')
+            is_storage_available = True
+        except AirflowException as e:
+            raise DropboxConnectionNotFoundException()
+    else:
+        raise InvalidStorageTypeException()
+
+except KeyError as e:
+    raise StorageTypeNotFoundException
 
 # calculate time period of backup
 time_now = datetime.now()
@@ -82,7 +112,7 @@ if (is_configuration_available and is_storage_available and is_rest_available an
 
             with open(os.path.dirname(os.path.realpath(__file__)) + '/templates/main.py.jinja2') as file_:
                 template = Template(file_.read())
-            output = template.render(data={'dag_id':table,'frequency':config.get('frequency')})
+            output = template.render(data={'dag_id':table,'frequency':config.get('frequency'),'storage_type':storage_type})
 
             with open(os.path.dirname(os.path.realpath(__file__))+ '/generated/dag_' + '{}'.format(table).replace(' ','_') + '.py', 'w') as f:
                 f.write(output)

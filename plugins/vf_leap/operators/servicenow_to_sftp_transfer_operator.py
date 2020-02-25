@@ -20,7 +20,7 @@ class ServiceNowToSFTPTransferOperator(ServiceNowToGenericTransferOperator):
 
     def _upload(self,context):
         try:
-            credentials_sftp = BaseHook.get_connection('sftp_global')
+            credentials_sftp = BaseHook.get_connection(self.storage_conn_id)
             self.sftp_user = credentials_sftp.login
             self.sftp_password = credentials_sftp.password
             self.sftp_host = credentials_sftp.host
