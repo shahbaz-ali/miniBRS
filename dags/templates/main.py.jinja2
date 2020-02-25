@@ -2,14 +2,20 @@
 #   Copyright (c)Cloud Innovation Partners 2020.
 #   Author : Shahbaz Ali
 
+from plugins.vf_leap.utils.dates import cron_presets
 from airflow import DAG
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.python_operator import PythonOperator, BranchPythonOperator
-from plugins.vf_leap.operators.servicenow_to_s3_transfer_operator import ServiceNowToS3TransferOperator
-from plugins.vf_leap.operators.servicenow_to_sftp_transfer_operator import ServiceNowToSFTPTransferOperator
-from plugins.vf_leap.operators.servicenow_to_dropbox_transfer_operator import ServiceNowToDropboxTransferOperator
 
-from plugins.vf_leap.utils.servicenow import fetch_servicenow_record_count, email_on_failure
+{% if data.storage_type == 'SFTP' %}
+from plugins.vf_leap.operators.servicenow_to_sftp_transfer_operator import ServiceNowToSFTPTransferOperator
+{% elif data.storage_type == 'S3' %}
+from plugins.vf_leap.operators.servicenow_to_s3_transfer_operator import ServiceNowToS3TransferOperator
+{% elif data.storage_type == 'DROPBOX' %}
+from plugins.vf_leap.operators.servicenow_to_dropbox_transfer_operator import ServiceNowToDropboxTransferOperator
+{% endif %}
+
+from plugins.vf_leap.utils.servicenow import fetch_servicenow_record_count, on_failure
 from datetime import datetime,timedelta
 
 
@@ -26,12 +32,15 @@ dag_id=str({{ "'"~data.dag_id|string~"'" }}).replace(' ','_').replace('.','_Dot_
         schedule_interval={{"'@"~data.frequency~"'"}},
         catchup=False,
         default_args={
-            'owner': 'LEAP',
+            'owner': 'BRS',
             'depends_on_past': False,
-            'start_date': datetime(2020,2,14,0,0),
+            'start_date': datetime(2020,2,24,0,0),
             'retries': 1,
             'retry_delay': timedelta(minutes=1)
         },
+        params={
+            'execution_date' : {% raw %}'{{ execution_date }}'{% endraw %}
+        }
 )
 
 table_name = {{"'"~data.dag_id~"'"}}
@@ -40,21 +49,20 @@ table_name = {{"'"~data.dag_id~"'"}}
 
 
 start = DummyOperator(task_id='start',dag=dag)
-end = DummyOperator(task_id='end',dag=dag)
-record_count = BranchPythonOperator(task_id='fetch_record_count',python_callable=fetch_servicenow_record_count,dag=dag,op_kwargs={'table_name': table_name},on_failure_callback=email_on_failure)
+end = DummyOperator(task_id='end',dag=dag,trigger_rule='none_failed')
+record_count = BranchPythonOperator(task_id='fetch_record_count',python_callable=fetch_servicenow_record_count,dag=dag,op_kwargs={'table_name': table_name,'execution_date':dag.params.get('execution_date')},on_failure_callback=on_failure)
 count_less_than_threshold = DummyOperator(task_id='count_within_threshold',dag=dag)
 count_exceeds_threshold = DummyOperator(task_id='count_exceeds_threshold',dag=dag)
 count_equals_zero = DummyOperator(task_id='count_is_zero',dag=dag)
 
 {% if data.storage_type == 'SFTP' %}
-submission = ServiceNowToSFTPTransferOperator(task_id='send_data_to_submission',dag=dag,snow_id ='snow_id',config = 'config',storage_conn_id = 'sftp_global',table = table_name,on_failure_callback=email_on_failure)
+submission = ServiceNowToSFTPTransferOperator(task_id='send_data_to_submission',dag=dag,snow_id ='snow_id',config = 'config',storage_conn_id = 'sftp_global',table = table_name,execution_date=dag.params.get('execution_date'),on_failure_callback=on_failure)
 {% elif data.storage_type == 'S3' %}
-submission = ServiceNowToS3TransferOperator(task_id='send_data_to_submission',dag=dag,snow_id ='snow_id',config = 'config',storage_conn_id = 's3_global',table = table_name,on_failure_callback=email_on_failure)
+submission = ServiceNowToS3TransferOperator(task_id='send_data_to_submission',dag=dag,snow_id ='snow_id',config = 'config',storage_conn_id = 's3_global',table = table_name,execution_date=dag.params.get('execution_date'),on_failure_callback=on_failure)
 
 {% elif data.storage_type == 'DROPBOX' %}
-submission = ServiceNowToDropboxTransferOperator(task_id='send_data_to_submission',dag=dag,snow_id ='snow_id',config = 'config',storage_conn_id = 'dropbox_global',table = table_name,on_failure_callback=email_on_failure)
+submission = ServiceNowToDropboxTransferOperator(task_id='send_data_to_submission',dag=dag,snow_id ='snow_id',config = 'config',storage_conn_id = 'dropbox_global',table = table_name,execution_date=dag.params.get('execution_date'),on_failure_callback=on_failure)
 {% endif %}
-
 
 
 start>>record_count>>[count_less_than_threshold,count_exceeds_threshold,count_equals_zero]
