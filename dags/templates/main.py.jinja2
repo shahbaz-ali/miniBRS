@@ -52,7 +52,6 @@ notify_submission_failure = Email_Operator(task_id='notify_submission_failure',d
 submission = ServiceNowToSFTPTransferOperator(task_id='send_data_to_submission',dag=dag,snow_id ='servicenow_default',config = 'config',storage_conn_id = 'sftp_default',table = table_name,execution_date=dag.params.get('execution_date'))
 {% elif data.storage_type == 's3' %}
 submission = ServiceNowToS3TransferOperator(task_id='send_data_to_submission',dag=dag,snow_id ='servicenow_default',config = 'config',storage_conn_id = 's3_default',table = table_name,execution_date=dag.params.get('execution_date'))
-
 {% elif data.storage_type == 'dropbox' %}
 submission = ServiceNowToDropboxTransferOperator(task_id='send_data_to_submission',dag=dag,snow_id ='servicenow_default',config = 'config',storage_conn_id = 'dropbox_default',table = table_name,execution_date=dag.params.get('execution_date'))
 {% endif %}
