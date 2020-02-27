@@ -181,5 +181,27 @@ class ServiceNowToGenericTransferOperator(BaseOperator):
                 key='exception',
                 value=str(e)
             )
+            instance = context['task_instance']
+            dag_id = str(instance.dag_id)
+            task_id = str(instance.task_id)
+            msg = str(e)
+            execution_date = str(instance.execution_date)
+            run_id = str(context['run_id'])
+
+            execution_date = execution_date.replace('T', ' ')[0:19]
+            key = '{}${}'.format(execution_date, dag_id)
+
+            value = {
+                'dag_id': dag_id,
+                'execution_date': execution_date,
+                'task_id': task_id,
+                'run_id': run_id,
+                'error_msg': msg
+            }
+
+            Variable.set(
+                key=key,
+                value=json.dumps(value)
+            )
 
             raise

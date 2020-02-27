@@ -21,11 +21,10 @@ from plugins.vf_leap.operators.servicenow_to_dropbox_transfer_operator import Se
 
 {%block dag%}
 table_name = {{"'"~data.dag_id~"'"}}
-execution_date = {{"'"~data.execution_date~"'"}}
-clean_up_param = {{ "'"~data.execution_date|string+'$'+data.dag_id|string~"'"}}
+
 
 dag = DAG(
-dag_id=str({{ "'"~'r_'+data.dag_id|string~"'" }}'_'+execution_date).replace(' ','_').replace('.','').replace('-','').replace('+','').replace(':',''),
+dag_id=str({{ "'"~'r_'+data.dag_id|string~"'" }}'_'+{{"'"~data.execution_date~"'"}}).replace(' ','_').replace('.','').replace('-','').replace('+','').replace(':',''),
         schedule_interval={{"'@once'"}},
         catchup=False,
         default_args={
@@ -38,19 +37,22 @@ dag_id=str({{ "'"~'r_'+data.dag_id|string~"'" }}'_'+execution_date).replace(' ',
 
 )
 start = DummyOperator(task_id='start',dag=dag)
-end = PythonOperator(task_id='end',dag=dag,python_callable=clean_up,op_kwargs={'variable_key': clean_up_param},trigger_rule='none_failed')
-record_count = BranchPythonOperator(task_id='fetch_record_count',python_callable=fetch_servicenow_record_count,dag=dag,op_kwargs={'table_name': table_name,'execution_date':execution_date},on_failure_callback=on_failure)
+end = DummyOperator(task_id='end',dag=dag)
+record_count = BranchPythonOperator(task_id='fetch_record_count',python_callable=fetch_servicenow_record_count,dag=dag,op_kwargs={'table_name': table_name,'execution_date':{{"'"~data.execution_date~"'"}}},on_failure_callback=on_failure)
 count_less_than_threshold = DummyOperator(task_id='count_within_threshold',dag=dag)
 count_exceeds_threshold = DummyOperator(task_id='count_exceeds_threshold',dag=dag)
 count_equals_zero = DummyOperator(task_id='count_is_zero',dag=dag)
 
+clean_up = PythonOperator(task_id='clean_up',dag=dag,trigger_rule='all_done',python_callable=clean_up,op_kwargs={'dag_id': {{"'"~data.dag_id~"'"}},'execution_date':{{"'"~data.execution_date~"'"}}})
+
+
 {% if data.storage_type == 'sftp' %}
-submission = ServiceNowToSFTPTransferOperator(task_id='send_data_to_submission',dag=dag,snow_id ='servicenow_default',config = 'config',storage_conn_id = 'sftp_default',table = table_name,execution_date=execution_date,on_failure_callback=on_failure)
+submission = ServiceNowToSFTPTransferOperator(task_id='send_data_to_submission',dag=dag,snow_id ='servicenow_default',config = 'config',storage_conn_id = 'sftp_default',table = table_name,execution_date={{"'"~data.execution_date~"'"}},on_failure_callback=on_failure)
 {% elif data.storage_type == 's3' %}
-submission = ServiceNowToS3TransferOperator(task_id='send_data_to_submission',dag=dag,snow_id ='servicenow_default',config = 'config',storage_conn_id = 's3_default',table = table_name,execution_date=execution_date,on_failure_callback=on_failure)
+submission = ServiceNowToS3TransferOperator(task_id='send_data_to_submission',dag=dag,snow_id ='servicenow_default',config = 'config',storage_conn_id = 's3_default',table = table_name,execution_date={{"'"~data.execution_date~"'"}},on_failure_callback=on_failure)
 
 {% elif data.storage_type == 'dropbox' %}
-submission = ServiceNowToDropboxTransferOperator(task_id='send_data_to_submission',dag=dag,snow_id ='servicenow_default',config = 'config',storage_conn_id = 'dropbox_default',table = table_name,execution_date=execution_date,on_failure_callback=on_failure)
+submission = ServiceNowToDropboxTransferOperator(task_id='send_data_to_submission',dag=dag,snow_id ='servicenow_default',config = 'config',storage_conn_id = 'dropbox_default',table = table_name,execution_date={{"'"~data.execution_date~"'"}},on_failure_callback=on_failure)
 {% endif %}
 
 
@@ -58,8 +60,8 @@ submission = ServiceNowToDropboxTransferOperator(task_id='send_data_to_submissio
 
 
 start>>record_count>>[count_less_than_threshold,count_exceeds_threshold,count_equals_zero]
-count_less_than_threshold >> submission >> end
-end <<[count_exceeds_threshold,count_equals_zero]
+count_less_than_threshold >> submission >>clean_up>> end
+end <<[count_exceeds_threshold,count_equals_zero,clean_up,submission]
 
 {% block unpause%}
 session = airflow.settings.Session()

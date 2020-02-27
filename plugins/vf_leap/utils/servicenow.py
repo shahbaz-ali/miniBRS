@@ -33,6 +33,9 @@ def fetch_servicenow_record_count(table_name,execution_date,**kwargs):
 
             elif (frequency == 'daily'):
                 freq_param = timedelta(days=-1)
+
+            elif (frequency == 'half-hourly'):
+                freq_param = timedelta(minutes=-30)
             else:
                 freq_param = timedelta(hours =-1)
 
@@ -88,11 +91,6 @@ def fetch_servicenow_record_count(table_name,execution_date,**kwargs):
             return 'count_is_zero'
         elif int(count_of_records) > config['threshold']:
             return 'count_exceeds_threshold'
-        elif (frequency == 'daily'):
-            freq_param = timedelta(days=-1)
-
-        elif (frequency == 'half-hourly'):
-            freq_param = timedelta(minutes=-30)
         else:
             return 'count_within_threshold'
 
@@ -103,6 +101,30 @@ def fetch_servicenow_record_count(table_name,execution_date,**kwargs):
             key='exception',
             value=str(e)
         )
+
+        instance = kwargs['task_instance']
+        dag_id = str(instance.dag_id)
+        task_id = str(instance.task_id)
+        msg = str(e)
+        execution_date = str(instance.execution_date)
+        run_id = str(kwargs['run_id'])
+
+        execution_date = execution_date.replace('T', ' ')[0:19]
+        key = '{}${}'.format(execution_date, dag_id)
+
+        value = {
+            'dag_id': dag_id,
+            'execution_date': execution_date,
+            'task_id': task_id,
+            'run_id': run_id,
+            'error_msg': msg
+        }
+
+        Variable.set(
+            key=key,
+            value=json.dumps(value)
+        )
+
 
         raise
 
@@ -167,7 +189,7 @@ def on_failure_context(dag_id,task_id,execution_date,msg,run_id):
     )
 
 
-def on_failure(context):
+def on_failure(**kwargs):
 
     '''
     This is a callback function used by the Task's to notify failure events
@@ -175,12 +197,14 @@ def on_failure(context):
     :return:
     '''
 
-    instance = context['task_instance']
+    print('inside on failure')
+
+    instance = kwargs['task_instance']
     dag_id = str(instance.dag_id)
     task_id = str(instance.task_id)
-    msg = str(context['exception'])
+    msg = str(kwargs['e'])
     execution_date = str(instance.execution_date)
-    run_id = str(context['run_id'])
+    run_id = str(kwargs['run_id'])
 
     on_failure_context(
         dag_id = dag_id,
@@ -190,28 +214,27 @@ def on_failure(context):
         run_id=run_id
     )
 
-    on_failure_email(
-        dag_id=dag_id,
-        task_id=task_id,
-        message=msg
-    )
+    # on_failure_email(
+    #     dag_id=dag_id,
+    #     task_id=task_id,
+    #     message=msg
+    # )
 
-def clean_up(variable_key):
+def clean_up(dag_id,execution_date):
+
     try:
-        variable_split = variable_key.split("$")
-        exec_date = variable_split[0]
-        table_name = variable_split[1]
-        Variable.delete(variable_key)
-
+        execution_date = execution_date.replace('T', ' ')
+        key = '{}${}'.format(execution_date, dag_id)
+        Variable.delete(key)
         r_config = json.loads(Variable.get("r_config"))
-        if table_name in r_config:
-            exec_dates = r_config[table_name]
-            if exec_date in exec_dates:
-                exec_dates.remove(exec_date)
-                r_config[table_name] = exec_dates
+        if dag_id in r_config:
+            exec_dates = r_config[dag_id]
+            if execution_date in exec_dates:
+                exec_dates.remove(execution_date)
+                r_config[dag_id] = exec_dates
 
-            if len(r_config[table_name]) == 0:
-                del r_config[table_name]
+            if len(r_config[dag_id]) == 0:
+                del r_config[dag_id]
         if len(r_config) != 0:
             Variable.set(
                 key="r_config",
