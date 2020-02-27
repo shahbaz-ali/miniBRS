@@ -88,6 +88,11 @@ def fetch_servicenow_record_count(table_name,execution_date,**kwargs):
             return 'count_is_zero'
         elif int(count_of_records) > config['threshold']:
             return 'count_exceeds_threshold'
+        elif (frequency == 'daily'):
+            freq_param = timedelta(days=-1)
+
+        elif (frequency == 'half-hourly'):
+            freq_param = timedelta(minutes=-30)
         else:
             return 'count_within_threshold'
 
@@ -144,6 +149,7 @@ def on_failure_context(dag_id,task_id,execution_date,msg,run_id):
     :return: None
     '''
 
+    execution_date = execution_date.replace('T', ' ')[0:19]
     key = '{}${}'.format(execution_date, dag_id)
 
     value = {
@@ -189,3 +195,29 @@ def on_failure(context):
         task_id=task_id,
         message=msg
     )
+
+def clean_up(variable_key):
+    try:
+        variable_split = variable_key.split("$")
+        exec_date = variable_split[0]
+        table_name = variable_split[1]
+        Variable.delete(variable_key)
+
+        r_config = json.loads(Variable.get("r_config"))
+        if table_name in r_config:
+            exec_dates = r_config[table_name]
+            if exec_date in exec_dates:
+                exec_dates.remove(exec_date)
+                r_config[table_name] = exec_dates
+
+            if len(r_config[table_name]) == 0:
+                del r_config[table_name]
+        if len(r_config) != 0:
+            Variable.set(
+                key="r_config",
+                value=json.dumps(r_config)
+            )
+        else:
+            Variable.delete('r_config')
+    except Exception as e:
+        print(e)
