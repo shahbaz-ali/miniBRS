@@ -169,5 +169,17 @@ class ServiceNowToGenericTransferOperator(BaseOperator):
 
 
     def execute(self,context):
-        self._get_records(context)
-        self._upload(context)
+        try:
+
+            self._get_records(context)
+
+            self._upload(context)
+
+        except Exception as e:
+
+            context['task_instance'].xcom_push(
+                key='exception',
+                value=str(e)
+            )
+
+            raise

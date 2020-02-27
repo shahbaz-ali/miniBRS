@@ -13,7 +13,7 @@ from airflow.exceptions import AirflowException
 import json,pendulum
 from datetime import datetime,timedelta
 
-def fetch_servicenow_record_count(table_name,execution_date):
+def fetch_servicenow_record_count(table_name,execution_date,**kwargs):
     """
     This method calls the servicenow api for a particular table and timeperiod
     and gets count of records for a particular table
@@ -21,74 +21,86 @@ def fetch_servicenow_record_count(table_name,execution_date):
     :return: task_id
     """
 
-
     try:
-        # Load Configuration Data
-        config = json.loads(Variable.get("config"))
-        frequency = config['frequency']
 
-        if (frequency == 'hourly'):
-            freq_param = timedelta(hours = -1)
+        try:
+            # Load Configuration Data
+            config = json.loads(Variable.get("config"))
+            frequency = config['frequency']
 
-        elif (frequency == 'daily'):
-            freq_param = timedelta(days=-1)
-        else:
-            freq_param = timedelta(hours =-1)
+            if (frequency == 'hourly'):
+                freq_param = timedelta(hours = -1)
 
-        execution_datetime = datetime.strptime(execution_date[:19], "%Y-%m-%dT%H:%M:%S")
+            elif (frequency == 'daily'):
+                freq_param = timedelta(days=-1)
+            else:
+                freq_param = timedelta(hours =-1)
 
-        to_time = datetime(
-            year=execution_datetime.year,
-            month=execution_datetime.month,
-            day=execution_datetime.day,
-            hour=execution_datetime.hour,
-            minute=execution_datetime.minute,
-            second=execution_datetime.second,
-            tzinfo=pendulum.timezone("UTC")
-        )
-        from_time = to_time + freq_param
+            execution_datetime = datetime.strptime(execution_date[:19], "%Y-%m-%dT%H:%M:%S")
 
-    except KeyError as e:
-        raise ConfigVariableNotFoundException()
-    try:
-        credentials_snow = BaseHook.get_connection("servicenow_default")
-        login = credentials_snow.login
-        password = credentials_snow.password
-        host = credentials_snow.host
-    except AirflowException as e:
-        raise ServiceNowConnectionNotFoundException()
-
-
-    service_now_hook = ServiceNowHook(
-        host=host,
-        login=login,
-        password=password
-    )
-    response = service_now_hook.api_call(
-        route='/api/now/stats/{}'.format(table_name),
-        accept='application/json',
-        query_params={
-            'sysparm_count': 'true',
-            'sysparm_query': "sys_updated_onBETWEENjavascript:gs.dateGenerate('{}','{}')@javascript:gs.dateGenerate('{}','{}')".format(
-                str(from_time.date()),
-                str(from_time.time()),
-                str(to_time.date()),
-                str(to_time.time())
+            to_time = datetime(
+                year=execution_datetime.year,
+                month=execution_datetime.month,
+                day=execution_datetime.day,
+                hour=execution_datetime.hour,
+                minute=execution_datetime.minute,
+                second=execution_datetime.second,
+                tzinfo=pendulum.timezone("UTC")
             )
-        }
-    )
-    print('response :' + response)
-    count_of_records = int(json.loads(response)['result']['stats']['count'])
+            from_time = to_time + freq_param
 
-    log = LoggingMixin().log
-    log.info("totals number of records %s ", str(count_of_records))
+        except KeyError as e:
+            raise ConfigVariableNotFoundException()
+        try:
+            credentials_snow = BaseHook.get_connection("servicenow_default")
+            login = credentials_snow.login
+            password = credentials_snow.password
+            host = credentials_snow.host
+        except AirflowException as e:
+            raise ServiceNowConnectionNotFoundException()
 
-    if int(count_of_records) == 0:
-        return 'count_is_zero'
-    elif int(count_of_records) > config['threshold']:
-        return 'count_exceeds_threshold'
-    else:
-        return 'count_within_threshold'
+
+        service_now_hook = ServiceNowHook(
+            host=host,
+            login=login,
+            password=password
+        )
+        response = service_now_hook.api_call(
+            route='/api/now/stats/{}'.format(table_name),
+            accept='application/json',
+            query_params={
+                'sysparm_count': 'true',
+                'sysparm_query': "sys_updated_onBETWEENjavascript:gs.dateGenerate('{}','{}')@javascript:gs.dateGenerate('{}','{}')".format(
+                    str(from_time.date()),
+                    str(from_time.time()),
+                    str(to_time.date()),
+                    str(to_time.time())
+                )
+            }
+        )
+        print('response :' + response)
+        count_of_records = int(json.loads(response)['result']['stats']['count'])
+
+        log = LoggingMixin().log
+        log.info("totals number of records %s ", str(count_of_records))
+
+        if int(count_of_records) == 0:
+            return 'count_is_zero'
+        elif int(count_of_records) > config['threshold']:
+            return 'count_exceeds_threshold'
+        else:
+            return 'count_within_threshold'
+
+
+    except Exception as e:
+
+        kwargs['ti'].xcom_push(
+            key='exception',
+            value=str(e)
+        )
+
+        raise
+
 
 def on_failure_email(dag_id,task_id,message):
     '''
