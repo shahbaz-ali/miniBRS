@@ -5,7 +5,8 @@
 from plugins.vf_leap.hooks.servicenow_hook import ServiceNowHook
 from plugins.vf_leap.utils.exceptions import ServiceNowConnectionNotFoundException, SFTPConnectionNotFoundException,ConfigVariableNotFoundException
 from airflow.utils.log.logging_mixin import LoggingMixin
-from airflow.settings import Session
+from airflow.utils.db import provide_session
+from plugins.vf_leap.modals.recovery_modals import FailedDagRun
 from airflow.hooks.base_hook import BaseHook
 from airflow.utils.email import send_email
 from airflow.models import Variable
@@ -184,8 +185,7 @@ def on_failure_context(dag_id,task_id,execution_date,msg,run_id):
 
     Variable.set(
         key=key,
-        value=json.dumps(value),
-        session=Session
+        value=json.dumps(value)
     )
 
 
@@ -220,9 +220,14 @@ def on_failure(**kwargs):
     #     message=msg
     # )
 
-def clean_up(dag_id,execution_date):
+
+@provide_session
+def clean_up(dag_id,execution_date,session=None):
 
     try:
+
+        search = pendulum.strptime(execution_date,"%Y-%m-%dT%H:%M:%S")
+
         execution_date = execution_date.replace('T', ' ')
         key = '{}${}'.format(execution_date, dag_id)
         Variable.delete(key)
@@ -242,5 +247,9 @@ def clean_up(dag_id,execution_date):
             )
         else:
             Variable.delete('r_config')
+
+        # update airflow meta-database
+        session.query(FailedDagRun).filter(FailedDagRun.dag_id == dag_id,FailedDagRun.execution_date.like(search)).update({'state':'recovery_executed'},synchronize_session='fetch')
+
     except Exception as e:
-        print(e)
+        LoggingMixin().log.error(e)
