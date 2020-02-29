@@ -38,7 +38,7 @@ dag_id=str({{ "'"~'r_'+data.dag_id|string~"'" }}'_'+{{"'"~data.execution_date~"'
 )
 start = DummyOperator(task_id='start',dag=dag)
 end = DummyOperator(task_id='end',dag=dag)
-record_count = BranchPythonOperator(task_id='fetch_record_count',python_callable=fetch_servicenow_record_count,dag=dag,op_kwargs={'table_name': table_name,'execution_date':{{"'"~data.execution_date~"'"}}},on_failure_callback=on_failure)
+record_count = BranchPythonOperator(task_id='fetch_record_count',python_callable=fetch_servicenow_record_count,dag=dag,op_kwargs={'table_name': table_name,'execution_date':{{"'"~data.execution_date~"'"}}})
 count_less_than_threshold = DummyOperator(task_id='count_within_threshold',dag=dag)
 count_exceeds_threshold = DummyOperator(task_id='count_exceeds_threshold',dag=dag)
 count_equals_zero = DummyOperator(task_id='count_is_zero',dag=dag)
@@ -47,12 +47,12 @@ clean_up = PythonOperator(task_id='clean_up',dag=dag,trigger_rule='all_done',pyt
 
 
 {% if data.storage_type == 'sftp' %}
-submission = ServiceNowToSFTPTransferOperator(task_id='send_data_to_submission',dag=dag,snow_id ='servicenow_default',config = 'config',storage_conn_id = 'sftp_default',table = table_name,execution_date={{"'"~data.execution_date~"'"}},on_failure_callback=on_failure)
+submission = ServiceNowToSFTPTransferOperator(task_id='send_data_to_submission',dag=dag,snow_id ='servicenow_default',config = 'config',storage_conn_id = 'sftp_default',table = table_name,execution_date={{"'"~data.execution_date~"'"}})
 {% elif data.storage_type == 's3' %}
-submission = ServiceNowToS3TransferOperator(task_id='send_data_to_submission',dag=dag,snow_id ='servicenow_default',config = 'config',storage_conn_id = 's3_default',table = table_name,execution_date={{"'"~data.execution_date~"'"}},on_failure_callback=on_failure)
+submission = ServiceNowToS3TransferOperator(task_id='send_data_to_submission',dag=dag,snow_id ='servicenow_default',config = 'config',storage_conn_id = 's3_default',table = table_name,execution_date={{"'"~data.execution_date~"'"}})
 
 {% elif data.storage_type == 'dropbox' %}
-submission = ServiceNowToDropboxTransferOperator(task_id='send_data_to_submission',dag=dag,snow_id ='servicenow_default',config = 'config',storage_conn_id = 'dropbox_default',table = table_name,execution_date={{"'"~data.execution_date~"'"}},on_failure_callback=on_failure)
+submission = ServiceNowToDropboxTransferOperator(task_id='send_data_to_submission',dag=dag,snow_id ='servicenow_default',config = 'config',storage_conn_id = 'dropbox_default',table = table_name,execution_date={{"'"~data.execution_date~"'"}})
 {% endif %}
 
 
