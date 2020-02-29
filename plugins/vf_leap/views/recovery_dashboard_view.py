@@ -38,7 +38,7 @@ def state_f(v, c, m, p):
         '{state}</span>').format(**locals())
 
 def reason_f(v, c, m, p):
-    markupstring = "<a href='http://localhost:8080/admin/task_fail_reason/{}${}'>view details</a>".format(m.execution_date,m.dag_id)
+    markupstring = "<a href='http://localhost:8080/admin/task_fail_reason/{}${}'>view details</a>".format(str(m.execution_date)[:19],m.dag_id)
     return Markup(markupstring)
 
 class RecoveryDashboard(ModelView):
@@ -58,6 +58,7 @@ class RecoveryDashboard(ModelView):
             ('success', 'success'),
             ('running', 'running'),
             ('failed', 'failed'),
+            ('recovery_executed','recovery_executed'),
         ],
     }
     form_args = {
