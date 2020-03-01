@@ -4,7 +4,7 @@
 
 from airflow.models.dagrun import DagRun
 from airflow.models.variable import Variable
-
+from airflow.models.dag import DagModel
 
 class FailedDagRun(DagRun):
     """
@@ -15,4 +15,8 @@ class FailedDagRun(DagRun):
 
 
 class Reason(Variable):
+    pass
+
+
+class Dags(DagModel):
     pass

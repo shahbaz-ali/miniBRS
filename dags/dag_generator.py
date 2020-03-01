@@ -5,15 +5,15 @@
 from airflow import DAG
 from airflow.utils.log.logging_mixin import LoggingMixin
 from airflow.hooks.base_hook import BaseHook
-from airflow.hooks.sqlite_hook import SqliteHook
+from airflow.settings import Session
 from airflow.models import Variable
 from plugins.vf_leap.utils.exceptions import AirflowException, ServiceNowConnectionNotFoundException, \
     S3ConnectionNotFoundException, ConfigVariableNotFoundException, AirflowAPICredentialsNotFoundException, \
     SFTPConnectionNotFoundException, StorageTypeNotFoundException, \
     InvalidStorageTypeException, DropboxConnectionNotFoundException
-import json, os, requests, pytz
+from plugins.vf_leap.modals.recovery_modals import Dags
+import json, os, requests
 from jinja2 import Template
-from datetime import datetime, timedelta
 
 from datetime import datetime
 
@@ -122,12 +122,7 @@ if (
     except AirflowException as e:
         raise ConfigVariableNotFoundException()
 
-    l_hook = SqliteHook(sqlite_conn_id='sqlite_default')
-    connection = l_hook.get_conn()
-    cursor = connection.cursor()
-
-    cursor.execute("SELECT dag_id,fileloc FROM dag")
-    md_dag_ids = cursor.fetchall()
+    md_dag_ids = Session.query(Dags.dag_id,Dags.fileloc).all()
 
     for record in md_dag_ids:
         (d_id, loc) = record
