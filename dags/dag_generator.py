@@ -49,7 +49,17 @@ try:
     config = json.loads(Variable.get("config"))
     is_configuration_available = True
 except KeyError as e:
-    raise ConfigVariableNotFoundException()
+
+    Variable.set(
+        key='config',
+        value=json.dumps({
+            "tables" : [],
+            "frequency" : "hourly",
+            "threshold" : 10000,
+            "export_format" : "xml",
+            "storage_type" : "sftp",
+            "email":""
+        }))
 
 try:
     # Load recovery Configuration Data
