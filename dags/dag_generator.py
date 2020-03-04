@@ -12,7 +12,7 @@ from plugins.vf_leap.utils.exceptions import AirflowException, ServiceNowConnect
     SFTPConnectionNotFoundException, StorageTypeNotFoundException, \
     InvalidStorageTypeException, DropboxConnectionNotFoundException
 from plugins.vf_leap.modals.recovery_modals import Dags
-import json, os, requests
+import json, os, requests,socket
 from jinja2 import Template
 
 from datetime import datetime
@@ -147,7 +147,7 @@ if (
                     LoggingMixin().log.warning("{} file doesn't exists !".format(filename))
 
                 requests.delete(
-                    url="http://localhost:8080/api/experimental/dags/{}".format(str(d_id)),
+                    url="http://{}:8080/api/experimental/dags/{}".format(socket.gethostbyname(socket.gethostname()),str(d_id)),
                     auth=(api_login, api_passcode)
                 )
             except Exception as e:

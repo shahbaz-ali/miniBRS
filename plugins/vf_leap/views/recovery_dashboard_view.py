@@ -13,7 +13,7 @@ from airflow.utils.state import State
 from airflow.utils.db import provide_session
 from airflow.utils.log.logging_mixin import LoggingMixin
 from airflow.models.variable import Variable
-import json
+import json, socket
 import datetime as dt
 
 
@@ -38,7 +38,7 @@ def state_f(v, c, m, p):
         '{state}</span>').format(**locals())
 
 def reason_f(v, c, m, p):
-    markupstring = "<a href='http://localhost:8080/admin/task_fail_reason/{}${}'>view details</a>".format(str(m.execution_date)[:19],m.dag_id)
+    markupstring = "<a href='http://{}:8080/admin/task_fail_reason/{}${}'>view details</a>".format(socket.gethostbyname(socket.gethostname()),str(m.execution_date)[:19],m.dag_id)
     return Markup(markupstring)
 
 class RecoveryDashboard(ModelView):
