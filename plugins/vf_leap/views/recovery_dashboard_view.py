@@ -13,7 +13,8 @@ from airflow.utils.state import State
 from airflow.utils.db import provide_session
 from airflow.utils.log.logging_mixin import LoggingMixin
 from airflow.models.variable import Variable
-import json, socket
+import json
+from flask import request
 import datetime as dt
 
 
@@ -38,7 +39,7 @@ def state_f(v, c, m, p):
         '{state}</span>').format(**locals())
 
 def reason_f(v, c, m, p):
-    markupstring = "<a href='http://{}:8080/admin/task_fail_reason/{}${}'>view details</a>".format(socket.gethostbyname(socket.gethostname()),str(m.execution_date)[:19],m.dag_id)
+    markupstring = "<a href='http://{}/admin/task_fail_reason/{}${}'>view details</a>".format(request.host,str(m.execution_date)[:19],m.dag_id)
     return Markup(markupstring)
 
 class RecoveryDashboard(ModelView):
@@ -135,13 +136,13 @@ class RecoveryDashboard(ModelView):
         """
             Default filters for model
             """
-        self.failed_dags_query = super(RecoveryDashboard, self).get_query().filter(FailedDagRun.get_state(FailedDagRun) == 'failed' )
-        return self.failed_dags_query
+
+        return super(RecoveryDashboard, self).get_query().filter(FailedDagRun.get_state(FailedDagRun) == 'failed' )
 
 
-    def get_count_query(self):
-        
-        return self.failed_dags_query.count()
+    # def get_count_query(self):
+    #
+    #     return self.get_query().count()
 
 
 class TaskInstanceFailureVariable(ModelView):
