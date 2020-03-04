@@ -135,8 +135,13 @@ class RecoveryDashboard(ModelView):
         """
             Default filters for model
             """
-        return super(RecoveryDashboard, self).get_query().filter(FailedDagRun.get_state(FailedDagRun) == 'failed' )
+        self.failed_dags_query = super(RecoveryDashboard, self).get_query().filter(FailedDagRun.get_state(FailedDagRun) == 'failed' )
+        return self.failed_dags_query
 
+
+    def get_count_query(self):
+        
+        return self.failed_dags_query.count()
 
 
 class TaskInstanceFailureVariable(ModelView):
