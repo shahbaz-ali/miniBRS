@@ -2,6 +2,7 @@
 #   Copyright (c)Cloud Innovation Partners 2020.
 #   Author : Shahbaz Ali
 
+import airflow
 from flask_admin import expose
 from flask import Markup
 from flask_admin.contrib.sqla import ModelView
@@ -13,10 +14,14 @@ from airflow.utils.state import State
 from airflow.utils.db import provide_session
 from airflow.utils.log.logging_mixin import LoggingMixin
 from airflow.models.variable import Variable
+from sqlalchemy import func
 import json
 from flask import request
 import datetime as dt
 
+airflow.load_login()
+
+current_user = airflow.login.current_user
 
 def parse_datetime_f(value):
     if not isinstance(value, dt.datetime):
@@ -130,7 +135,8 @@ class RecoveryDashboard(ModelView):
 
         Variable.set(key='r_config', value=json.dumps(r_obj))
 
-
+    def is_accessible(self):
+        return current_user.is_authenticated
 
     def get_query(self):
         """
@@ -140,9 +146,10 @@ class RecoveryDashboard(ModelView):
         return super(RecoveryDashboard, self).get_query().filter(FailedDagRun.get_state(FailedDagRun) == 'failed' )
 
 
-    # def get_count_query(self):
-    #
-    #     return self.get_query().count()
+
+    def get_count_query(self):
+
+        self.session.query(func.count('*')).select_from(FailedDagRun).filter(FailedDagRun.get_state(FailedDagRun) == 'failed')
 
 
 class TaskInstanceFailureVariable(ModelView):
