@@ -1,10 +1,10 @@
-#   vf_leap
+#   mbrs
 #   Copyright (c)Cloud Innovation Partners 2020.
 #   Author : MAK
 
 
-from plugins.vf_leap.operators.common.servicenow_to_generic_transfer_operator import ServiceNowToGenericTransferOperator
-from plugins.vf_leap.utils.exceptions import SFTPConnectionNotFoundException
+from plugins.mbrs.operators.common.servicenow_to_generic_transfer_operator import ServiceNowToGenericTransferOperator
+from plugins.mbrs.utils.exceptions import SFTPConnectionNotFoundException
 import paramiko,socket
 from airflow.hooks.base_hook import BaseHook
 from airflow.utils.log.logging_mixin import LoggingMixin
@@ -45,7 +45,7 @@ class ServiceNowToSFTPTransferOperator(ServiceNowToGenericTransferOperator):
         dt_current = datetime.now()
 
         r_file_path = '{}/{}/{}/{}/{}'.format(
-            'vf_leap',
+            'mbrs',
             'Servicenow',
             self.table,
             '{}-{}-{}'.format(

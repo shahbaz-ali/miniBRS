@@ -1,9 +1,9 @@
-#   vf_leap
+#   mbrs
 #   Copyright (c)Cloud Innovation Partners 2020.
 #   Author : MAK
 
-from plugins.vf_leap.operators.common.servicenow_to_generic_transfer_operator import ServiceNowToGenericTransferOperator
-from plugins.vf_leap.utils.exceptions import DropboxConnectionNotFoundException
+from plugins.mbrs.operators.common.servicenow_to_generic_transfer_operator import ServiceNowToGenericTransferOperator
+from plugins.mbrs.utils.exceptions import DropboxConnectionNotFoundException
 from airflow.hooks.base_hook import BaseHook
 from airflow.utils.log.logging_mixin import LoggingMixin
 from airflow.exceptions import AirflowException
@@ -47,7 +47,7 @@ class ServiceNowToDropboxTransferOperator(ServiceNowToGenericTransferOperator):
                 dt_current = datetime.now()
 
                 r_file_path = '{}/{}/{}/{}/{}'.format(
-                    '/vf_leap',
+                    '/mbrs',
                     'Servicenow',
                     self.table,
                     '{}-{}-{}'.format(

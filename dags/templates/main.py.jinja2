@@ -1,24 +1,24 @@
-#   vf_leap
+#   mbrs
 #   Copyright (c)Cloud Innovation Partners 2020.
 #   Author : Shahbaz Ali
 
-from plugins.vf_leap.utils.dates import cron_presets
+from plugins.mbrs.utils.dates import cron_presets
 from airflow import DAG
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.python_operator import PythonOperator, BranchPythonOperator
-from plugins.vf_leap.operators.common.email_operator import Email_Operator
+from plugins.mbrs.operators.common.email_operator import Email_Operator
 import typing
-from plugins.vf_leap.utils.servicenow import fetch_servicenow_record_count, on_failure,clean_up
+from plugins.mbrs.utils.servicenow import fetch_servicenow_record_count, on_failure,clean_up
 from datetime import datetime,timedelta
 import airflow.settings
 from airflow.models import DagModel
 
 {% if data.storage_type == 'sftp' %}
-from plugins.vf_leap.operators.servicenow_to_sftp_transfer_operator import ServiceNowToSFTPTransferOperator
+from plugins.mbrs.operators.servicenow_to_sftp_transfer_operator import ServiceNowToSFTPTransferOperator
 {% elif data.storage_type == 's3' %}
-from plugins.vf_leap.operators.servicenow_to_s3_transfer_operator import ServiceNowToS3TransferOperator
+from plugins.mbrs.operators.servicenow_to_s3_transfer_operator import ServiceNowToS3TransferOperator
 {% elif data.storage_type == 'dropbox' %}
-from plugins.vf_leap.operators.servicenow_to_dropbox_transfer_operator import ServiceNowToDropboxTransferOperator
+from plugins.mbrs.operators.servicenow_to_dropbox_transfer_operator import ServiceNowToDropboxTransferOperator
 {% endif %}
 
 {%block dag%}

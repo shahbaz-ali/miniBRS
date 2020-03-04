@@ -1,15 +1,15 @@
-#   vf_leap
+#   mbrs
 #   Copyright (c)Cloud Innovation Partners 2020.
 #   Author : Shahbaz Ali,MAK
 
-from plugins.vf_leap.operators.common.servicenow_to_generic_transfer_operator import ServiceNowToGenericTransferOperator
-from plugins.vf_leap.utils.exceptions import S3ConnectionNotFoundException
+from plugins.mbrs.operators.common.servicenow_to_generic_transfer_operator import ServiceNowToGenericTransferOperator
+from plugins.mbrs.utils.exceptions import S3ConnectionNotFoundException
 from airflow.hooks.base_hook import BaseHook
 from airflow.utils.log.logging_mixin import LoggingMixin
 from airflow.exceptions import AirflowException
 from airflow import configuration
 from datetime import datetime
-from plugins.vf_leap.hooks.amazon_s3_hook import S3HookWrapper
+from plugins.mbrs.hooks.amazon_s3_hook import S3HookWrapper
 from botocore.exceptions import ClientError
 
 class ServiceNowToS3TransferOperator(ServiceNowToGenericTransferOperator):
@@ -27,7 +27,7 @@ class ServiceNowToS3TransferOperator(ServiceNowToGenericTransferOperator):
         file_name = l_file_path[l_file_path.rfind('/') + 1:]
 
         r_file_path = '{}/{}/{}/{}/{}'.format(
-            'vf_leap',
+            'mbrs',
             'Servicenow',
             self.table,
             '{}-{}-{}'.format(

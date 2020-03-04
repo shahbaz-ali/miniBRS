@@ -1,4 +1,4 @@
-#   vf_leap
+#   mbrs
 #   Copyright (c)Cloud Innovation Partners 2020.
 #   Author : Shahbaz Ali
 
@@ -7,11 +7,11 @@ from airflow.utils.log.logging_mixin import LoggingMixin
 from airflow.hooks.base_hook import BaseHook
 from airflow.settings import Session
 from airflow.models import Variable
-from plugins.vf_leap.utils.exceptions import AirflowException, ServiceNowConnectionNotFoundException, \
+from plugins.mbrs.utils.exceptions import AirflowException, ServiceNowConnectionNotFoundException, \
     S3ConnectionNotFoundException, ConfigVariableNotFoundException, AirflowAPICredentialsNotFoundException, \
     SFTPConnectionNotFoundException, StorageTypeNotFoundException, \
     InvalidStorageTypeException, DropboxConnectionNotFoundException
-from plugins.vf_leap.modals.recovery_modals import Dags
+from plugins.mbrs.modals.recovery_modals import Dags
 import json, os, requests,socket
 from jinja2 import Template
 

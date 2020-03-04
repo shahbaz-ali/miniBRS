@@ -5,7 +5,7 @@
 from airflow.hooks.base_hook import BaseHook
 from airflow.exceptions import AirflowException
 from airflow.models import Connection
-from plugins.vf_leap.utils.servicenow_client import ServiceNowClient
+from plugins.mbrs.utils.servicenow_client import ServiceNowClient
 
 from airflow.utils.log.logging_mixin import LoggingMixin
 

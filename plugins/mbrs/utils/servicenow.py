@@ -1,12 +1,12 @@
-#   vf_leap
+#   mbrs
 #   Copyright (c)Cloud Innovation Partners 2020.
 #   Author : Shahbaz Ali
 
-from plugins.vf_leap.hooks.servicenow_hook import ServiceNowHook
-from plugins.vf_leap.utils.exceptions import ServiceNowConnectionNotFoundException, SFTPConnectionNotFoundException,ConfigVariableNotFoundException
+from plugins.mbrs.hooks.servicenow_hook import ServiceNowHook
+from plugins.mbrs.utils.exceptions import ServiceNowConnectionNotFoundException, SFTPConnectionNotFoundException,ConfigVariableNotFoundException
 from airflow.utils.log.logging_mixin import LoggingMixin
 from airflow.utils.db import provide_session
-from plugins.vf_leap.modals.recovery_modals import FailedDagRun
+from plugins.mbrs.modals.recovery_modals import FailedDagRun
 from airflow.hooks.base_hook import BaseHook
 from airflow.utils.email import send_email
 from airflow.models import Variable

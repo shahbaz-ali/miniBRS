@@ -1,4 +1,4 @@
-#   vf_leap
+#   mbrs
 #   Copyright (c)Cloud Innovation Partners 2020.
 #   Author : Shahbaz Ali
 
@@ -7,7 +7,7 @@ from flask_admin import expose
 from flask import Markup
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.actions import action
-from plugins.vf_leap.modals.recovery_modals import FailedDagRun, Reason
+from plugins.mbrs.modals.recovery_modals import FailedDagRun, Reason
 from wtforms import validators
 from airflow.utils import timezone
 from airflow.utils.state import State

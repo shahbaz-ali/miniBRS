@@ -1,15 +1,15 @@
 
-#   vf_leap
+#   mbrs
 #   Copyright (c)Cloud Innovation Partners 2020.
 #   Author : Shahbaz Ali
 
 from airflow.plugins_manager import AirflowPlugin
 
-from plugins.vf_leap.operators.servicenow_to_s3_transfer_operator import ServiceNowToS3TransferOperator
-from plugins.vf_leap.operators.servicenow_to_sftp_transfer_operator import ServiceNowToSFTPTransferOperator
+from plugins.mbrs.operators.servicenow_to_s3_transfer_operator import ServiceNowToS3TransferOperator
+from plugins.mbrs.operators.servicenow_to_sftp_transfer_operator import ServiceNowToSFTPTransferOperator
 
-from plugins.vf_leap.views import RECOVERY_DASHBOARD,DEMO_VIEW
-#from plugins.vf_leap.blueprints import RECOVERY_BLUEPRINT
+from plugins.mbrs.views import RECOVERY_DASHBOARD,DEMO_VIEW
+#from plugins.mbrs.blueprints import RECOVERY_BLUEPRINT
 
 
 class VFLEAP(AirflowPlugin):

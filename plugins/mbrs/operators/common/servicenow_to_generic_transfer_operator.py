@@ -1,4 +1,4 @@
-#   vf_leap
+#   mbrs
 #   Copyright (c)Cloud Innovation Partners 2020.
 #   Author : MAK
 
@@ -9,8 +9,8 @@ from airflow.utils.log.logging_mixin import LoggingMixin
 from airflow.models import Variable
 from airflow.exceptions import AirflowException
 import json, os,pendulum
-from plugins.vf_leap.hooks.servicenow_hook import ServiceNowHook
-from plugins.vf_leap.utils.exceptions import ServiceNowConnectionNotFoundException,ConfigVariableNotFoundException
+from plugins.mbrs.hooks.servicenow_hook import ServiceNowHook
+from plugins.mbrs.utils.exceptions import ServiceNowConnectionNotFoundException,ConfigVariableNotFoundException
 from datetime import datetime, timedelta
 from airflow import configuration
 
@@ -157,7 +157,7 @@ class ServiceNowToGenericTransferOperator(BaseOperator):
 
         bk_file_path = l_dir_backup_path + bk_file_name
 
-        r_file_path = l_dir_backup_path.replace(self.DIR_BACKUP_PATH, '/vf_leap/') + bk_file_name
+        r_file_path = l_dir_backup_path.replace(self.DIR_BACKUP_PATH, '/mbrs/') + bk_file_name
 
         if not os.path.exists(l_dir_backup_path):
             os.makedirs(l_dir_backup_path)

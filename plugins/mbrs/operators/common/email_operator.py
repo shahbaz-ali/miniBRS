@@ -1,4 +1,4 @@
-#   vf_leap
+#   mbrs
 #   Copyright (c)Cloud Innovation Partners 2020.
 #   Author : Shahbaz Ali
 
@@ -6,7 +6,7 @@ from airflow.operators.python_operator import PythonOperator
 from airflow.utils.decorators import apply_defaults
 from airflow.utils.email import send_email
 from airflow.models.variable import Variable
-from plugins.vf_leap.utils.exceptions import ConfigVariableNotFoundException
+from plugins.mbrs.utils.exceptions import ConfigVariableNotFoundException
 import json
 
 class Email_Operator(PythonOperator):
