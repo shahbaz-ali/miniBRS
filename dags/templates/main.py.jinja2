@@ -27,11 +27,11 @@ table_name = {{"'"~data.dag_id~"'"}}
 dag = DAG(
 dag_id=str({{ "'"~data.dag_id|string~"'" }}).replace(' ','_').replace('.','_Dot_').replace('-','_Dash_'),
         schedule_interval={{"'@"~data.frequency~"'"}},
-        catchup=False,
+        catchup=True,
         default_args={
             'owner': 'BRS',
-            'depends_on_past': False,
-            'start_date': datetime(2020,2,24,0,0),
+            'depends_on_past': True,
+            'start_date': datetime.strptime({{"'"~data.start_date~"'"}},"%Y-%m-%d %H:%M:%S"),
             'retries': 1,
             'retry_delay': timedelta(minutes=1)
         },

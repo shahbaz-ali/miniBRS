@@ -157,3 +157,18 @@ class DropboxConnectionNotFoundException(AirflowException):
             return "DropboxConnectionNotFoundException, {}".format(self.message)
         else:
             return "DropboxConnectionNotFoundException has been raised"
+
+
+class BadStartDatePreset(AirflowException):
+
+    def __init__(self, *args):
+        if args:
+            self.message = args[0]
+        else:
+            self.message = "Unknown start_date preset value used in DAG"
+
+    def __str__(self):
+        if self.message:
+            return "BadStartPreset, {}".format(self.message)
+        else:
+            return "BadStartPreset has been raised"

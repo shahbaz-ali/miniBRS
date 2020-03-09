@@ -12,6 +12,7 @@ from plugins.mbrs.utils.exceptions import AirflowException, ServiceNowConnection
     SFTPConnectionNotFoundException, StorageTypeNotFoundException, \
     InvalidStorageTypeException, DropboxConnectionNotFoundException
 from plugins.mbrs.modals.recovery_modals import Dags
+from plugins.mbrs.utils.dates import get_start_date
 import json, os, requests,socket
 from jinja2 import Template
 
@@ -54,6 +55,7 @@ except KeyError as e:
         key='config',
         value=json.dumps({
             "tables" : [],
+            "start_date":"1da",
             "frequency" : "hourly",
             "threshold" : 10000,
             "export_format" : "xml",
@@ -122,7 +124,7 @@ if (
             with open(os.path.dirname(os.path.realpath(__file__)) + '/templates/main.py.jinja2') as file_:
                 template = Template(file_.read())
             output = template.render(
-                data={'dag_id': table, 'frequency': config.get('frequency'), 'storage_type': storage_type})
+                data={'dag_id': table, 'frequency': config.get('frequency'), 'storage_type': storage_type,'start_date':get_start_date(config.get('start_date'))})
 
             with open(os.path.dirname(os.path.realpath(__file__)) + '/generated/dag_' + '{}'.format(table).replace(' ',
                                                                                                                    '_') + '.py',
