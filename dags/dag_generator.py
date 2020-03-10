@@ -107,6 +107,19 @@ try:
 except KeyError as e:
     raise StorageTypeNotFoundException
 
+# dag creation dates
+try:
+
+    dag_creation_dates = json.loads(Variable.get(key='dag_creation_dates'))
+
+except KeyError as e:
+
+    Variable.set(
+        key='dag_creation_dates',
+        value=json.dumps({})
+    )
+
+
 dag = DAG(
     dag_id='dag_generator',
     description='Generates DAG corresponding to a specific table',
@@ -115,22 +128,35 @@ dag = DAG(
     catchup=False
 )
 
-if (
-        is_configuration_available and is_storage_available and is_rest_available and is_servicenow_available and not is_recovery):
+if (is_configuration_available and is_storage_available and is_rest_available and is_servicenow_available and not is_recovery):
+
     new_dags = []
 
     try:
         for table in config.get('tables'):
             with open(os.path.dirname(os.path.realpath(__file__)) + '/templates/main.py.jinja2') as file_:
                 template = Template(file_.read())
-            output = template.render(
-                data={'dag_id': table, 'frequency': config.get('frequency'), 'storage_type': storage_type,'start_date':get_start_date(config.get('start_date'))})
 
-            with open(os.path.dirname(os.path.realpath(__file__)) + '/generated/dag_' + '{}'.format(table).replace(' ',
-                                                                                                                   '_') + '.py',
-                      'w') as f:
+
+            if dag_creation_dates.get(table) is not None:
+                start_date = dag_creation_dates.get(table)
+            else:
+                start_date = get_start_date(config.get('start_date'))
+                dag_creation_dates[table] = str(start_date)
+
+            output = template.render(
+                data={
+                    'dag_id': table,
+                    'frequency': config.get('frequency'),
+                    'storage_type': storage_type,
+                    'start_date':start_date
+                }
+            )
+
+            with open(os.path.dirname(os.path.realpath(__file__)) + '/generated/dag_' + '{}'.format(table).replace(' ','_') + '.py','w') as f:
                 f.write(output)
                 new_dags.append('dag_' + '{}'.format(table).replace(' ', '_') + '.py')
+
     except AirflowException as e:
         raise ConfigVariableNotFoundException()
 
@@ -152,11 +178,19 @@ if (
                     url="http://{}:8080/api/experimental/dags/{}".format(socket.gethostbyname(socket.gethostname()),str(d_id)),
                     auth=(api_login, api_passcode)
                 )
+
+                dag_creation_dates.pop(d_id)
+                
             except Exception as e:
                 LoggingMixin().log.error(str(e))
-elif (
-        is_configuration_available and is_storage_available and is_rest_available and is_servicenow_available and is_recovery):
+
+    Variable.set(key='dag_creation_dates', value=json.dumps(dag_creation_dates))
+
+
+elif (is_configuration_available and is_storage_available and is_rest_available and is_servicenow_available and is_recovery):
+
     new_recovery_dags = []
+
     try:
         for table in r_config:
             for exec_date in r_config.get(table):
@@ -170,6 +204,7 @@ elif (
                             table,execution_date).replace(' ', '_') + '.py', 'w') as f:
                         f.write(output)
                         new_recovery_dags.append('r_dag_' + '{}'.format(table).replace(' ', '_') + '.py')
+
     except AirflowException as e:
         raise ConfigVariableNotFoundException()
 

@@ -7,6 +7,7 @@ from plugins.mbrs.utils.exceptions import ServiceNowConnectionNotFoundException,
 from airflow.utils.log.logging_mixin import LoggingMixin
 from airflow.utils.db import provide_session
 from plugins.mbrs.modals.recovery_modals import FailedDagRun
+from plugins.mbrs.utils.dates import one_month_ago
 from airflow.hooks.base_hook import BaseHook
 from airflow.utils.email import send_email
 from airflow.models import Variable
@@ -28,19 +29,21 @@ def fetch_servicenow_record_count(table_name,execution_date,**kwargs):
             # Load Configuration Data
             config = json.loads(Variable.get("config"))
             frequency = config['frequency']
+            execution_datetime = datetime.strptime(execution_date[:19], "%Y-%m-%dT%H:%M:%S")
 
             if (frequency == 'hourly'):
                 freq_param = timedelta(hours = -1)
 
             elif (frequency == 'daily'):
                 freq_param = timedelta(days=-1)
+            elif (frequency == 'monthly'):
+                freq_param = timedelta(days=-1*one_month_ago(execution_date))
 
             elif (frequency == 'half-hourly'):
                 freq_param = timedelta(minutes=-30)
             else:
                 freq_param = timedelta(hours =-1)
 
-            execution_datetime = datetime.strptime(execution_date[:19], "%Y-%m-%dT%H:%M:%S")
 
             to_time = datetime(
                 year=execution_datetime.year,

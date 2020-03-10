@@ -9,6 +9,7 @@ from airflow.utils.log.logging_mixin import LoggingMixin
 from airflow.models import Variable
 from airflow.exceptions import AirflowException
 import json, os,pendulum
+from plugins.mbrs.utils.dates import one_month_ago
 from plugins.mbrs.hooks.servicenow_hook import ServiceNowHook
 from plugins.mbrs.utils.exceptions import ServiceNowConnectionNotFoundException,ConfigVariableNotFoundException
 from datetime import datetime, timedelta
@@ -98,6 +99,8 @@ class ServiceNowToGenericTransferOperator(BaseOperator):
 
         elif(self.FREQUENCY == 'daily'):
             freq_param = timedelta(days =-1)
+        elif(self.FREQUENCY == 'monthly'):
+            freq_param = timedelta(days=-1 * one_month_ago(self.execution_date))
         else:
             freq_param = timedelta(hours=-1)
         execution_datetime = datetime.strptime(self.execution_date[:19], "%Y-%m-%dT%H:%M:%S")

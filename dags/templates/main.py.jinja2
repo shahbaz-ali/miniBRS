@@ -10,6 +10,7 @@ from plugins.mbrs.operators.common.email_operator import Email_Operator
 import typing
 from plugins.mbrs.utils.servicenow import fetch_servicenow_record_count, on_failure,clean_up
 from datetime import datetime,timedelta
+import pendulum
 import airflow.settings
 from airflow.models import DagModel
 
@@ -30,8 +31,8 @@ dag_id=str({{ "'"~data.dag_id|string~"'" }}).replace(' ','_').replace('.','_Dot_
         catchup=True,
         default_args={
             'owner': 'BRS',
-            'depends_on_past': True,
-            'start_date': datetime.strptime({{"'"~data.start_date~"'"}},"%Y-%m-%d %H:%M:%S"),
+            'depends_on_past': False,
+            'start_date' : pendulum.parse({{"'"~data.start_date~"'"}}),
             'retries': 1,
             'retry_delay': timedelta(minutes=1)
         },
