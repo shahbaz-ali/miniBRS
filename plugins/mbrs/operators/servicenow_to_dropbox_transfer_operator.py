@@ -44,7 +44,8 @@ class ServiceNowToDropboxTransferOperator(ServiceNowToGenericTransferOperator):
                 l_file_path = self.file_name.replace('.csv', '.json')
                 file_name = l_file_path[l_file_path.rfind('/') + 1:]
 
-                dt_current = datetime.now()
+
+                dt_current = datetime.strptime(self.execution_date[:19], "%Y-%m-%dT%H:%M:%S")
 
                 r_file_path = '{}/{}/{}/{}/{}'.format(
                     '/mbrs',
@@ -58,6 +59,7 @@ class ServiceNowToDropboxTransferOperator(ServiceNowToGenericTransferOperator):
                     file_name)
 
                 LoggingMixin().log.info("Running dropbox upload process...")
+                LoggingMixin().log.info("R_BACKUP :"+r_file_path)
                 try:
                     file_size = os.path.getsize(l_file_path)
                     CHUNK_SIZE = 4 * 1024 * 1024

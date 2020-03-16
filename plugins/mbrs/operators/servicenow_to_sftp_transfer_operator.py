@@ -42,7 +42,7 @@ class ServiceNowToSFTPTransferOperator(ServiceNowToGenericTransferOperator):
         # Go!
         sftp = paramiko.SFTPClient.from_transport(transport)
 
-        dt_current = datetime.now()
+        dt_current = datetime.strptime(self.execution_date[:19], "%Y-%m-%dT%H:%M:%S")
 
         r_file_path = '{}/{}/{}/{}/{}'.format(
             'mbrs',
