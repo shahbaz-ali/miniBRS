@@ -22,7 +22,7 @@ class ServiceNowToS3TransferOperator(ServiceNowToGenericTransferOperator):
         except AirflowException as e:
             raise S3ConnectionNotFoundException()
 
-        dt_current = datetime.now()
+        dt_current = datetime.strptime(self.execution_date[:19], "%Y-%m-%dT%H:%M:%S")
         l_file_path = self.file_name.replace('.csv', '.json')
         file_name = l_file_path[l_file_path.rfind('/') + 1:]
 
