@@ -135,11 +135,11 @@ class RecoveryDashboard(ModelView):
         r_obj = {}
 
         for d in rows:
-            # if r_obj.__contains__(d.dag_id):
-            #     if not (r_obj[d.dag_id]).__contains__(d.execution_date):
-            #         r_obj[d.dag_id].append(str(d.execution_date))
-            # else:
-            r_obj[d.dag_id] = [str(d.execution_date)[:19]]
+            if r_obj.__contains__(d.dag_id):
+                if not (r_obj[d.dag_id]).__contains__(d.execution_date):
+                    r_obj[d.dag_id].append(str(d.execution_date))
+            else:
+                r_obj[d.dag_id] = [str(d.execution_date)[:19]]
 
         Variable.set(key='r_config', value=json.dumps(r_obj))
 
