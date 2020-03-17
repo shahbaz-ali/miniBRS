@@ -8,7 +8,7 @@ from airflow.hooks.base_hook import BaseHook
 from airflow.utils.log.logging_mixin import LoggingMixin
 from airflow.exceptions import AirflowException
 from airflow import configuration
-from datetime import datetime
+from datetime import datetime, timedelta
 from plugins.mbrs.hooks.amazon_s3_hook import S3HookWrapper
 from botocore.exceptions import ClientError
 
@@ -26,16 +26,33 @@ class ServiceNowToS3TransferOperator(ServiceNowToGenericTransferOperator):
         l_file_path = self.file_name.replace('.csv', '.json')
         file_name = l_file_path[l_file_path.rfind('/') + 1:]
 
-        r_file_path = '{}/{}/{}/{}/{}'.format(
-            'mbrs',
-            'Servicenow',
-            self.table,
-            '{}-{}-{}'.format(
-                dt_current.year,
-                dt_current.month,
-                dt_current.day
-            ),
-            file_name)
+        exec_hour = str(dt_current.hour)
+        exec_minute = str(dt_current.minute)
+        exec_second = str(dt_current.second)
+
+        if exec_hour == '0' and exec_minute == '0' and exec_second == '0':
+            dt_current = dt_current - timedelta(days=1)
+            r_file_path = '{}/{}/{}/{}/{}'.format(
+                '/mbrs',
+                'Servicenow',
+                self.table,
+                '{}-{}-{}'.format(
+                    dt_current.year,
+                    dt_current.month,
+                    dt_current.day
+                ),
+                file_name)
+        else:
+            r_file_path = '{}/{}/{}/{}/{}'.format(
+                '/mbrs',
+                'Servicenow',
+                self.table,
+                '{}-{}-{}'.format(
+                    dt_current.year,
+                    dt_current.month,
+                    dt_current.day
+                ),
+                file_name)
 
         try:
             s3_hook = S3HookWrapper(

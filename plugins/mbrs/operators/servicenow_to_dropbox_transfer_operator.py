@@ -8,7 +8,7 @@ from airflow.hooks.base_hook import BaseHook
 from airflow.utils.log.logging_mixin import LoggingMixin
 from airflow.exceptions import AirflowException
 from airflow import configuration
-from datetime import datetime
+from datetime import datetime, timedelta
 import dropbox,os
 from dropbox import files,exceptions
 
@@ -47,19 +47,36 @@ class ServiceNowToDropboxTransferOperator(ServiceNowToGenericTransferOperator):
 
                 dt_current = datetime.strptime(self.execution_date[:19], "%Y-%m-%dT%H:%M:%S")
 
-                r_file_path = '{}/{}/{}/{}/{}'.format(
-                    '/mbrs',
-                    'Servicenow',
-                    self.table,
-                    '{}-{}-{}'.format(
-                        dt_current.year,
-                        dt_current.month,
-                        dt_current.day
-                    ),
-                    file_name)
+                exec_hour = str(dt_current.hour)
+                exec_minute = str(dt_current.minute)
+                exec_second = str(dt_current.second)
+
+                if exec_hour == '0' and exec_minute == '0' and exec_second == '0':
+                    dt_current = dt_current - timedelta(days=1)
+                    r_file_path = '{}/{}/{}/{}/{}'.format(
+                        '/mbrs',
+                        'Servicenow',
+                        self.table,
+                        '{}-{}-{}'.format(
+                            dt_current.year,
+                            dt_current.month,
+                            dt_current.day
+                        ),
+                        file_name)
+                else:
+                    r_file_path = '{}/{}/{}/{}/{}'.format(
+                        '/mbrs',
+                        'Servicenow',
+                        self.table,
+                        '{}-{}-{}'.format(
+                            dt_current.year,
+                            dt_current.month,
+                            dt_current.day
+                        ),
+                        file_name)
+
 
                 LoggingMixin().log.info("Running dropbox upload process...")
-                LoggingMixin().log.info("R_BACKUP :"+r_file_path)
                 try:
                     file_size = os.path.getsize(l_file_path)
                     CHUNK_SIZE = 4 * 1024 * 1024
