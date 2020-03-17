@@ -113,6 +113,14 @@ class RecoveryDashboard(ModelView):
                     r_obj[d.dag_id] = [str(d.execution_date)[:19]]
 
             Variable.set(key='r_config',value=json.dumps(r_obj))
+
+            for id in ids:
+                execution_date = session.query(FailedDagRun).filter(FailedDagRun.id==id).one().execution_date
+                dag_id = session.query(FailedDagRun).filter(FailedDagRun.id==id).one().dag_id
+
+                session.query(FailedDagRun).filter(FailedDagRun.id == id).update({'state': 'recovery_executed'}, synchronize_session='fetch')
+                Variable.delete(key="{}${}".format(str(execution_date)[:19],dag_id))
+
         except KeyError as e:
             LoggingMixin().log.warn(e.__str__())
             Variable.set(key='r_config',value='{}')
@@ -134,6 +142,14 @@ class RecoveryDashboard(ModelView):
             r_obj[d.dag_id] = [str(d.execution_date)[:19]]
 
         Variable.set(key='r_config', value=json.dumps(r_obj))
+
+        for id in ids:
+            execution_date = session.query(FailedDagRun).filter(FailedDagRun.id == id).one().execution_date
+            dag_id = session.query(FailedDagRun).filter(FailedDagRun.id == id).one().dag_id
+
+            session.query(FailedDagRun).filter(FailedDagRun.id == id).update({'state': 'recovery_executed'},
+                                                                             synchronize_session='fetch')
+            Variable.delete(key="{}${}".format(str(execution_date)[:19],dag_id))
 
     def is_accessible(self):
         return current_user.is_authenticated
