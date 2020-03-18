@@ -12,13 +12,14 @@ from airflow.exceptions import AirflowException
 from airflow import configuration
 from datetime import datetime,timedelta
 
+
 class ServiceNowToSFTPTransferOperator(ServiceNowToGenericTransferOperator):
     """
     This method overrides the upload method of ServiceNowToGenericTransferOperator
     and provides an implementation of  uploading the generated file to SFTP server
     """
 
-    def _upload(self,context):
+    def _upload(self, context):
         try:
             credentials_sftp = BaseHook.get_connection(self.storage_conn_id)
             self.sftp_user = credentials_sftp.login
@@ -26,7 +27,6 @@ class ServiceNowToSFTPTransferOperator(ServiceNowToGenericTransferOperator):
             self.sftp_host = credentials_sftp.host
         except AirflowException as e:
             raise SFTPConnectionNotFoundException
-
 
         l_file_path = self.file_name.replace('.csv', '.json')
         file_name = l_file_path[l_file_path.rfind('/') + 1:]
@@ -51,7 +51,7 @@ class ServiceNowToSFTPTransferOperator(ServiceNowToGenericTransferOperator):
         if exec_hour == '0' and exec_minute == '0' and exec_second == '0':
             dt_current = dt_current - timedelta(days=1)
             r_file_path = '{}/{}/{}/{}/{}'.format(
-                '/mbrs',
+                'mbrs',
                 'Servicenow',
                 self.table,
                 '{}-{}-{}'.format(
@@ -62,7 +62,7 @@ class ServiceNowToSFTPTransferOperator(ServiceNowToGenericTransferOperator):
                 file_name)
         else:
             r_file_path = '{}/{}/{}/{}/{}'.format(
-                '/mbrs',
+                'mbrs',
                 'Servicenow',
                 self.table,
                 '{}-{}-{}'.format(
@@ -83,5 +83,7 @@ class ServiceNowToSFTPTransferOperator(ServiceNowToGenericTransferOperator):
         sftp.put(l_file_path, file_name)
 
         # Close
-        if sftp: sftp.close()
-        if transport: transport.close()
+        if sftp:
+            sftp.close()
+        if transport:
+            transport.close()
