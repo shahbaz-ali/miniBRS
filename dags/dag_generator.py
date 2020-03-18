@@ -69,7 +69,10 @@ try:
     if len(r_config) > 0:
         is_recovery = True
 except KeyError as e:
-    pass
+    Variable.set(
+        key='r_config',
+        value='{}'
+    )
 
 # get storage Type from config
 try:
@@ -93,9 +96,8 @@ try:
         except AirflowException as e:
             raise S3ConnectionNotFoundException()
 
-
     elif storage_type == 'dropbox':
-        # dropbox Connection details
+
         try:
             credentials_dropbox = BaseHook.get_connection('dropbox_default')
             is_storage_available = True
@@ -125,10 +127,13 @@ dag = DAG(
     description='Generates DAG corresponding to a specific table',
     schedule_interval=None,
     start_date=datetime(2020, 11, 1),
-    catchup=False
+    catchup=False,
+    default_args={
+        'owner': 'BRS',
+    }
 )
 
-if (is_configuration_available and is_storage_available and is_rest_available and is_servicenow_available and not is_recovery):
+if is_configuration_available and is_storage_available and is_rest_available and is_servicenow_available:
 
     new_dags = []
 
@@ -137,6 +142,7 @@ if (is_configuration_available and is_storage_available and is_rest_available an
             with open(os.path.dirname(os.path.realpath(__file__)) + '/templates/main.py.jinja2') as file_:
                 template = Template(file_.read())
 
+            dag_creation_dates = json.loads(Variable.get(key='dag_creation_dates'))
 
             if dag_creation_dates.get(table) is not None:
                 start_date = dag_creation_dates.get(table)
@@ -153,14 +159,30 @@ if (is_configuration_available and is_storage_available and is_rest_available an
                 }
             )
 
-            with open(os.path.dirname(os.path.realpath(__file__)) + '/generated/dag_' + '{}'.format(table).replace(' ','_') + '.py','w') as f:
+            with open(os.path.dirname(os.path.realpath(__file__))
+                      + '/generated/dag_' + '{}'.format(table).replace(' ', '_') + '.py', 'w') as f:
                 f.write(output)
                 new_dags.append('dag_' + '{}'.format(table).replace(' ', '_') + '.py')
+
+        for table in r_config:
+            for exec_date in r_config.get(table):
+                execution_date = str(exec_date).replace(' ', 'T')[0:19]
+                with open(os.path.dirname(os.path.realpath(__file__))
+                          + '/templates/recovery_template.py.jinja2') as file_:
+                    template = Template(file_.read())
+                    output = template.render(
+                        data={'dag_id': table, 'frequency': config.get('frequency'), 'storage_type': storage_type,
+                              'execution_date': execution_date})
+                with open(os.path.dirname(os.path.realpath(__file__)) + '/generated/r_dag_' + '{}_{}'.format(
+                        table, execution_date).replace(' ', '_') + '.py', 'w') as f:
+                    f.write(output)
+                    e = '{}'.format(execution_date).replace(' ', 'T')
+                    new_dags.append('r_dag_' + '{}_{}'.format(table, e).replace(' ', '_') + '.py')
 
     except AirflowException as e:
         raise ConfigVariableNotFoundException()
 
-    md_dag_ids = Session.query(Dags.dag_id,Dags.fileloc).all()
+    md_dag_ids = Session.query(Dags.dag_id, Dags.fileloc).all()
 
     for record in md_dag_ids:
         (d_id, loc) = record
@@ -175,7 +197,10 @@ if (is_configuration_available and is_storage_available and is_rest_available an
                     LoggingMixin().log.warning("{} file doesn't exists !".format(filename))
 
                 requests.delete(
-                    url="http://{}:8080/api/experimental/dags/{}".format(socket.gethostbyname(socket.gethostname()),str(d_id)),
+                    url="http://{}:8080/api/experimental/dags/{}".format(
+                        socket.gethostbyname(socket.gethostname()),
+                        str(d_id)
+                    ),
                     auth=(api_login, api_passcode)
                 )
 
@@ -186,28 +211,6 @@ if (is_configuration_available and is_storage_available and is_rest_available an
 
     Variable.set(key='dag_creation_dates', value=json.dumps(dag_creation_dates))
 
-
-elif (is_configuration_available and is_storage_available and is_rest_available and is_servicenow_available and is_recovery):
-
-    new_recovery_dags = []
-
-    try:
-        for table in r_config:
-            for exec_date in r_config.get(table):
-                execution_date = str(exec_date).replace(' ', 'T')[0:19]
-                with open(os.path.dirname(os.path.realpath(__file__)) + '/templates/recovery_template.py.jinja2') as file_:
-                    template = Template(file_.read())
-                    output = template.render(
-                        data={'dag_id': table, 'frequency': config.get('frequency'), 'storage_type': storage_type,
-                              'execution_date': execution_date})
-                    with open(os.path.dirname(os.path.realpath(__file__)) + '/generated/r_dag_' + '{}_{}'.format(
-                            table,execution_date).replace(' ', '_') + '.py', 'w') as f:
-                        f.write(output)
-                        new_recovery_dags.append('r_dag_' + '{}'.format(table).replace(' ', '_') + '.py')
-
-    except AirflowException as e:
-        raise ConfigVariableNotFoundException()
-
-
 else:
+
     LoggingMixin().log.error('missing connections and variables, please check your airflow configuration !')
