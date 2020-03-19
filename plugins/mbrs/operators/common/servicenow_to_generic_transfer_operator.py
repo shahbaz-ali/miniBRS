@@ -102,7 +102,7 @@ class ServiceNowToGenericTransferOperator(BaseOperator):
         elif(self.FREQUENCY == 'monthly'):
             freq_param = timedelta(days=-1 * one_month_ago(self.execution_date))
         else:
-            freq_param = timedelta(hours=-1)
+            freq_param = timedelta(hours=+1)
         execution_datetime = datetime.strptime(self.execution_date[:19], "%Y-%m-%dT%H:%M:%S")
 
         self.to_time = datetime(
@@ -115,6 +115,8 @@ class ServiceNowToGenericTransferOperator(BaseOperator):
             tzinfo=pendulum.timezone("UTC")
         )
         self.from_time = self.to_time + freq_param
+
+        LoggingMixin().log.info("Getting data from: {}  to : {} ".format(self.from_time, self.to_time))
 
     def _upload(self):
 

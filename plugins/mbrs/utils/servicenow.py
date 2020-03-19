@@ -89,6 +89,7 @@ def fetch_servicenow_record_count(table_name, execution_date, **kwargs):
         count_of_records = int(json.loads(response)['result']['stats']['count'])
 
         log = LoggingMixin().log
+        log.info("Getting count from: {}  to : {} ".format(from_time, to_time))
         log.info("totals number of records %s ", str(count_of_records))
 
         if int(count_of_records) == 0:
