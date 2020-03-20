@@ -6,7 +6,7 @@ from plugins.mbrs.utils.dates import cron_presets
 from airflow import DAG
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.python_operator import PythonOperator, BranchPythonOperator
-from plugins.mbrs.utils.servicenow import fetch_servicenow_record_count, on_failure,clean_up
+from plugins.mbrs.utils.servicenow import fetch_servicenow_record_count, on_failure
 from datetime import datetime,timedelta
 import airflow.settings
 from airflow.models import DagModel
@@ -43,9 +43,6 @@ count_less_than_threshold = DummyOperator(task_id='count_within_threshold',dag=d
 count_exceeds_threshold = DummyOperator(task_id='count_exceeds_threshold',dag=dag)
 count_equals_zero = DummyOperator(task_id='count_is_zero',dag=dag)
 
-clean_up = PythonOperator(task_id='clean_up',dag=dag,trigger_rule='all_done',python_callable=clean_up,op_kwargs={'dag_id': {{"'"~data.dag_id~"'"}},'execution_date':{{"'"~data.execution_date~"'"}}})
-
-
 {% if data.storage_type == 'sftp' %}
 submission = ServiceNowToSFTPTransferOperator(task_id='send_data_to_submission',dag=dag,snow_id ='servicenow_default',config = 'config',storage_conn_id = 'sftp_default',table = table_name,execution_date={{"'"~data.execution_date~"'"}})
 {% elif data.storage_type == 's3' %}
@@ -60,8 +57,8 @@ submission = ServiceNowToDropboxTransferOperator(task_id='send_data_to_submissio
 
 
 start>>record_count>>[count_less_than_threshold,count_exceeds_threshold,count_equals_zero]
-count_less_than_threshold >> submission >>clean_up>> end
-end <<[count_exceeds_threshold,count_equals_zero,clean_up,submission]
+count_less_than_threshold >> submission >> end
+end <<[count_exceeds_threshold,count_equals_zero,submission]
 
 {% block unpause%}
 session = airflow.settings.Session()

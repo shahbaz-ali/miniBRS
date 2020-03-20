@@ -22,6 +22,7 @@ from plugins.mbrs.utils.exceptions import InvalidStorageTypeException
 from plugins.mbrs.utils.exceptions import DropboxConnectionNotFoundException
 from plugins.mbrs.modals.recovery_modals import Dags
 
+from sqlalchemy import not_
 from jinja2 import Template
 import json
 import os
@@ -256,7 +257,7 @@ def create_dags():
                 f.write(output)
                 new_dags.append('dag_' + '{}'.format(table).replace(' ', '_') + '.py')
 
-        if r_config is not None:
+        if len(r_config) != 0:
 
             for table in r_config:
                 for exec_date in r_config.get(table):
@@ -278,7 +279,7 @@ def create_dags():
         for record in md_dag_ids:
             (d_id, loc) = record
             filename = loc[str(loc).rfind('/') + 1:]
-            if filename == 'dag_generator.py':
+            if filename == 'dag_generator.py' or filename == 'dag_cleanup.py':
                 continue
             if filename not in new_dags:
                 try:
