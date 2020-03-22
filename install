@@ -1,0 +1,143 @@
+#!/usr/bin/python3
+
+#  _ __ ___ (_)_ __ (_)     | __ )|  _ \/ ___|
+# | '_ ` _ \| | '_ \| |_____|  _ \| |_) \___ \
+# | | | | | | | | | | |_____| |_) |  _ < ___) |
+# |_| |_| |_|_|_| |_|_|     |____/|_| \_\____/
+#
+# ___           _        _ _       _   _
+# |_ _|_ __  ___| |_ __ _| | | __ _| |_(_) ___  _ __
+#  | || '_ \/ __| __/ _` | | |/ _` | __| |/ _ \| '_ \
+#  | || | | \__ \ || (_| | | | (_| | |_| | (_) | | | |
+# |___|_| |_|___/\__\__,_|_|_|\__,_|\__|_|\___/|_| |_|
+#
+
+
+import os
+import sys
+import subprocess
+import configparser
+
+AIRFLOW_HOME = None
+AIRFLOW_CONFIG = None
+AIRFLOW_DB = None
+AIRFLOW_CONFIG_TEST = None
+
+
+def check_python_version():
+    if sys.version_info.major >= 3:
+        print("Python version : 3 installed")
+    else:
+        print("You are using python2, please install python3 or above")
+        exit(1)
+
+
+def upgrade_pip():
+    process = subprocess.Popen(["pip3 -V"], universal_newlines=True, stdout=subprocess.PIPE, shell=True)
+    (output, error) = process.communicate()
+
+    if output.__contains__("pip 9.0.1"):
+        print("pip version : 9.0.1  OK")
+    else:
+        print("pip version : {}".format(output[:9]))
+        print("installing pip version 9.0.1")
+
+        p = subprocess.Popen(["python -m pip install --force-reinstall pip==9.0.1"],
+                             universal_newlines=True, stdout=subprocess.PIPE, shell=True)
+        (o, e) = p.communicate()
+
+        if e is not None:
+            print("pip upgrade failed !")
+            exit(2)
+
+
+def install_packages_from_requirement_file():
+
+    (out, err) = subprocess.Popen(["sed /pkg-resources==0.0.0/d requirement.txt > output.txt"],
+                                  universal_newlines=True, stdout=subprocess.PIPE, shell=True).communicate()
+
+    print('removed pkg-resources==0.0.0 as requirement')
+    print('installing requirements....')
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", "output.txt"])
+    subprocess.Popen(["rm output.txt"], universal_newlines=True, stdout=subprocess.PIPE, shell=True).communicate()
+
+
+def set_airflow_home_as_environment():
+
+    global AIRFLOW_HOME
+
+    AIRFLOW_HOME = os.getcwd()
+
+    os.environ["AIRFLOW_HOME"] = AIRFLOW_HOME
+
+    subprocess.Popen(["sed -i '/AIRFLOW_HOME/d' /etc/environment"],
+                     universal_newlines=True, stdout=subprocess.PIPE, shell=True).communicate()
+
+    subprocess.Popen(["sed -i '0,/PATH/ a\\AIRFLOW_HOME=\\\"{}\\\"' /etc/environment".format(AIRFLOW_HOME)],
+                     universal_newlines=True, stdout=subprocess.PIPE, shell=True).communicate()
+
+    print("CWD : {}".format(os.getcwd()))
+
+    subprocess.Popen([". /etc/environment"],
+                     universal_newlines=True, stdout=subprocess.PIPE, shell=True).communicate()
+
+
+
+def modify_airflow_config():
+
+    global AIRFLOW_CONFIG
+    global AIRFLOW_CONFIG_TEST
+    global AIRFLOW_DB
+
+    AIRFLOW_CONFIG = "{}/{}".format(AIRFLOW_HOME, 'airflow.cfg')
+    AIRFLOW_CONFIG_TEST = "{}/{}".format(AIRFLOW_HOME, 'unittests.cfg')
+    AIRFLOW_DB = "{}/{}".format(AIRFLOW_HOME, 'airflow.db')
+
+    config = configparser.ConfigParser()
+    with open(AIRFLOW_CONFIG) as f:
+        config.read_file(f)
+        config.set(
+            section="core",
+            option="load_examples",
+            value='False'
+        )
+
+        f.close()
+
+
+def chown(path, uid, gid):
+    os.chown(path=path, uid=int(uid), gid=int(gid))
+
+
+def airflow_initdb():
+
+    print('Initializing airflow meta-database')
+    subprocess.Popen(["airflow initdb"],
+                     universal_newlines=True, stdout=subprocess.PIPE, shell=True).communicate()
+
+
+if __name__ == '__main__':
+
+    print("Initializing setup...")
+
+    check_python_version()
+
+    print("""
+  ____ ___ ____                 _       _ ____  ____  ____  
+ / ___|_ _|  _ \      _ __ ___ (_)_ __ (_) __ )|  _ \/ ___| 
+| |    | || |_) |____| '_ ` _ \| | '_ \| |  _ \| |_) \___ \ 
+| |___ | ||  __/_____| | | | | | | | | | | |_) |  _ < ___) |
+ \____|___|_|        |_| |_| |_|_|_| |_|_|____/|_| \_\____/ 
+
+    """)
+
+    upgrade_pip()
+    install_packages_from_requirement_file()
+    set_airflow_home_as_environment()
+    airflow_initdb()
+    modify_airflow_config()
+
+    # Change owner
+    chown(AIRFLOW_CONFIG, os.environ['SUDO_UID'], os.environ['SUDO_GID'])
+    chown(AIRFLOW_CONFIG_TEST, os.environ['SUDO_UID'], os.environ['SUDO_GID'])
+    chown(AIRFLOW_DB, os.environ['SUDO_UID'], os.environ['SUDO_GID'])
