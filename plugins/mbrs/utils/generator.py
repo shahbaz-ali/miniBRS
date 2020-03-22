@@ -135,12 +135,12 @@ def create_airflow_rest_connection():
         )
 
         config_parser.set(
-            section='leap_core',
+            section='core',
             option='username',
             value='admin'
         )
         config_parser.set(
-            section='leap_core',
+            section='core',
             option='password',
             value=admin_password
         )
