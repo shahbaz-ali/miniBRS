@@ -31,7 +31,7 @@ class ServiceNowToSFTPTransferOperator(ServiceNowToGenericTransferOperator):
         l_file_path = self.file_name.replace('.csv', '.json')
         file_name = l_file_path[l_file_path.rfind('/') + 1:]
 
-        paramiko.util.log_to_file(configuration.get('leap_core', 'project_folder') + "/logs/paramiko.log")
+        paramiko.util.log_to_file(configuration.get_airflow_home()+ "/logs/paramiko.log")
 
         # Open a transport
         transport = paramiko.Transport((self.sftp_host, 22))

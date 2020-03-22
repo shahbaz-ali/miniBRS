@@ -19,7 +19,7 @@ class ServiceNowToGenericTransferOperator(BaseOperator):
 
     template_fields = ('execution_date',)
     FREQUENCY = 'hourly'
-    DIR_BACKUP_PATH = configuration.get('leap_core', 'project_folder') + '/backup/'
+    DIR_BACKUP_PATH = configuration.get_airflow_home() + '/backup/'
 
     @apply_defaults
     def __init__(
