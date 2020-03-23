@@ -200,7 +200,7 @@ def ini():
     _trace_ = inspect.stack()
     _invoking_function_ = _trace_[len(_trace_)-2].function
 
-    if _invoking_function_ == "initdb":
+    if _invoking_function_ == "initdb" or _invoking_function_ == "resetdb":
 
         LoggingMixin().log.info("airflow db initialization, starting bootstrap...")
 

@@ -142,6 +142,12 @@ def airflow_initdb():
                      universal_newlines=True, stdout=subprocess.PIPE, shell=True).communicate()
 
 
+def airflow_resetdb():
+    print('Resetting airflow meta-database')
+    subprocess.Popen(["airflow resetdb -y"],
+                     universal_newlines=True, stdout=subprocess.PIPE, shell=True).communicate()
+
+
 if __name__ == '__main__':
 
     print("Initializing setup...")
@@ -198,6 +204,8 @@ if __name__ == '__main__':
     chown(AIRFLOW_CONFIG, os.environ['SUDO_UID'], os.environ['SUDO_GID'])
     chown(AIRFLOW_CONFIG_TEST, os.environ['SUDO_UID'], os.environ['SUDO_GID'])
     chown(AIRFLOW_DB, os.environ['SUDO_UID'], os.environ['SUDO_GID'])
+
+    airflow_resetdb()
 
     print("""
     
