@@ -12,6 +12,10 @@
 # |___|_| |_|___/\__\__,_|_|_|\__,_|\__|_|\___/|_| |_|
 #
 
+#   mbrs
+#   Copyright (c)Cloud Innovation Partners 2020.
+#   Author : Shahbaz Ali
+
 
 import os
 import sys
@@ -219,7 +223,7 @@ if __name__ == '__main__':
     '       ENVIRONMENT VARIABLES BY EXECUTING THIS         '
     '       COMMAND MANUALLY, ONCE                          '
     '                                                       '
-    '       ~$ source /etc/environment                      '
+    '       ~$ set -a; source /etc/environment; set +a;                      '
     '                                                       '
     '                                                       '
     '''''''''''''''''''''''''''''''''''''''''''''''''''''''''
