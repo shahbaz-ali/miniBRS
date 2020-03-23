@@ -25,6 +25,12 @@ AIRFLOW_DB = None
 AIRFLOW_CONFIG_TEST = None
 
 
+def apt_update():
+    subprocess.Popen(["apt-get update"],
+                     universal_newlines=True, stdout=None, stderr=None, shell=True,
+                     executable="/bin/bash").communicate()
+
+
 def install_pip3():
     subprocess.Popen(["apt-get install -y python3-pip"],
                      universal_newlines=True, stdout=None, stderr=None, shell=True,
@@ -132,6 +138,13 @@ def airflow_initdb():
 if __name__ == '__main__':
 
     print("Initializing setup...")
+
+    print("__________________________________________________")
+    print("                                                  ")
+    print("UPDATING SYSTEM LIBRARIES")
+    print("__________________________________________________")
+
+    apt_update()
 
     check_python_version()
 
