@@ -108,12 +108,12 @@ def modify_airflow_config():
     global AIRFLOW_CONFIG_TEST
     global AIRFLOW_DB
 
-    AIRFLOW_CONFIG = "{}/{}".format(AIRFLOW_HOME, 'airflow.cfg')
-    AIRFLOW_CONFIG_TEST = "{}/{}".format(AIRFLOW_HOME, 'unittests.cfg')
-    AIRFLOW_DB = "{}/{}".format(AIRFLOW_HOME, 'airflow.db')
+    AIRFLOW_CONFIG = "{}/{}".format(os.getcwd(), 'airflow.cfg')
+    AIRFLOW_CONFIG_TEST = "{}/{}".format(os.getcwd(), 'unittests.cfg')
+    AIRFLOW_DB = "{}/{}".format(os.getcwd(), 'airflow.db')
 
     config = configparser.ConfigParser()
-    with open(AIRFLOW_CONFIG) as f:
+    with open(AIRFLOW_CONFIG, 'r') as f:
         config.read_file(f)
         config.set(
             section="core",
@@ -122,6 +122,13 @@ def modify_airflow_config():
         )
 
         f.close()
+    os.remove(AIRFLOW_CONFIG)
+
+    with open(AIRFLOW_CONFIG, 'w') as f:
+        config.write(f)
+        f.close()
+
+    chown(AIRFLOW_CONFIG, os.environ['SUDO_UID'], os.environ['SUDO_GID'])
 
 
 def chown(path, uid, gid):
@@ -156,13 +163,13 @@ if __name__ == '__main__':
     install_pip3()
     install_mysql_client()
 
-    print("""
+    print("""   
   ____ ___ ____                 _       _ ____  ____  ____  
  / ___|_ _|  _ \      _ __ ___ (_)_ __ (_) __ )|  _ \/ ___| 
 | |    | || |_) |____| '_ ` _ \| | '_ \| |  _ \| |_) \___ \ 
 | |___ | ||  __/_____| | | | | | | | | | | |_) |  _ < ___) |
  \____|___|_|        |_| |_| |_|_|_| |_|_|____/|_| \_\____/ 
-
+        
     """)
 
 
@@ -191,3 +198,18 @@ if __name__ == '__main__':
     chown(AIRFLOW_CONFIG, os.environ['SUDO_UID'], os.environ['SUDO_GID'])
     chown(AIRFLOW_CONFIG_TEST, os.environ['SUDO_UID'], os.environ['SUDO_GID'])
     chown(AIRFLOW_DB, os.environ['SUDO_UID'], os.environ['SUDO_GID'])
+
+    print("""
+    
+    '''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    '                                                       '
+    '       MINI_BRS HAS BEEN INSTALLED SUCCESSFULLY        '
+    '        ON YOUR MACHINE, PLEASE UPDATE YOUR            '
+    '       ENVIRONMENT VARIABLES BY EXECUTING THIS         '
+    '       COMMAND MANUALLY, ONCE                          '
+    '                                                       '
+    '       ~$ source /etc/environment                      '
+    '                                                       '
+    '                                                       '
+    '''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    """)
