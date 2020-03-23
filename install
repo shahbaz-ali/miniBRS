@@ -139,13 +139,16 @@ def airflow_initdb():
 
     print('Initializing airflow meta-database')
     subprocess.Popen(["airflow initdb"],
-                     universal_newlines=True, stdout=subprocess.PIPE, shell=True).communicate()
+                     universal_newlines=True, stdout=subprocess.PIPE, shell=True,
+                     executable='/bin/bash').communicate()
 
 
 def airflow_resetdb():
+
     print('Resetting airflow meta-database')
     subprocess.Popen(["airflow resetdb -y"],
-                     universal_newlines=True, stdout=subprocess.PIPE, shell=True).communicate()
+                     universal_newlines=True, stdout=subprocess.PIPE, shell=True,
+                     executable='/bin/bash').communicate()
 
 
 if __name__ == '__main__':
