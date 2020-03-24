@@ -35,6 +35,12 @@ def apt_update():
                      executable="/bin/bash").communicate()
 
 
+def upgrade_setup_tools():
+    subprocess.Popen(["pip3 install --upgrade setuptools"],
+                     universal_newlines=True, stdout=None, stderr=None, shell=True,
+                     executable="/bin/bash").communicate()
+
+
 def install_pip3():
     subprocess.Popen(["apt-get install -y python3-pip"],
                      universal_newlines=True, stdout=None, stderr=None, shell=True,
@@ -48,11 +54,21 @@ def install_mysql_client():
 
 
 def check_python_version():
-    if sys.version_info.major >= 3:
-        print("Python version : 3 installed")
+    if sys.version_info.major >= 3 and sys.version_info.minor == 6:
+        print("Python version : 3.6 installed OK")
     else:
-        print("You are using python2, please install python3 or above")
-        exit(1)
+        print("""
+        
+        _______________________________________________________________
+        
+                        INSTALLATION TERMINATED                        
+        _______________________________________________________________
+        
+        You have Python version : 3.5 or below installed ")
+        miniBRS uses Airflow version 1.10.9, which requires you to have
+        python 3.6 or above, please make sure you have requirements fullfilled
+        for further details checkout the docs section
+        """)
 
 
 def upgrade_pip():
@@ -175,6 +191,7 @@ if __name__ == '__main__':
 
     install_pip3()
     install_mysql_client()
+    upgrade_setup_tools()
 
     print("""   
   ____ ___ ____                 _       _ ____  ____  ____  
