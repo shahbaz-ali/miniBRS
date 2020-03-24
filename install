@@ -69,6 +69,7 @@ def check_python_version():
         python 3.6 or above, please make sure you have requirements fullfilled
         for further details checkout the docs section
         """)
+        exit(1)
 
 
 def upgrade_pip():
