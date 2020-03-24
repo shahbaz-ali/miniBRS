@@ -124,7 +124,7 @@ def create_airflow_rest_connection():
         session.close()
 
         # create 'admin' user
-        admin_password = str(base64.urlsafe_b64encode(os.urandom(32)))
+        # admin_password = str(base64.urlsafe_b64encode(os.urandom(32)))
 
         config_parser = configuration.AirflowConfigParser()
 
@@ -134,15 +134,34 @@ def create_airflow_rest_connection():
                     )
         )
 
-        config_parser.set(
+        u = config_parser.get(
             section='core',
-            option='username',
-            value='admin'
+            key='username'
         )
-        config_parser.set(
+
+        p = config_parser.get(
             section='core',
-            option='password',
-            value=admin_password
+            key='password'
+        )
+
+        user = PasswordUser(models.User())
+        user.username = u
+        user.email = 'admin@admin.com'
+        user.password = p
+        user.superuser = True
+        session = settings.Session()
+        session.add(user)
+        session.commit()
+        session.close()
+
+        config_parser.remove_option(
+            section='core',
+            option='username'
+        )
+
+        config_parser.remove_option(
+            section='core',
+            option='password'
         )
 
         file = open(configuration.get_airflow_config(configuration.get_airflow_home()), 'w')
@@ -150,16 +169,6 @@ def create_airflow_rest_connection():
         config_parser.write(file)
 
         file.close()
-
-        user = PasswordUser(models.User())
-        user.username = 'admin'
-        user.email = 'admin@admin.com'
-        user.password = admin_password
-        user.superuser = True
-        session = settings.Session()
-        session.add(user)
-        session.commit()
-        session.close()
 
 
 def create_configuration_variables():

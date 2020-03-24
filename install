@@ -22,6 +22,7 @@ import sys
 import subprocess
 import configparser
 import time
+import getpass
 
 AIRFLOW_HOME = None
 AIRFLOW_CONFIG = None
@@ -160,6 +161,26 @@ def modify_airflow_config():
             value="airflow.contrib.auth.backends.password_auth"
         )
 
+        (username, password,) = create_login_credentails()
+
+        if username == -1 and password == -1:
+
+            print('Error Occurred !')
+            exit(1)
+
+        else:
+            config.set(
+                section='core',
+                option='username',
+                value=username
+            )
+
+            config.set(
+                section='core',
+                option='password',
+                value=password
+            )
+
         f.close()
     os.remove(AIRFLOW_CONFIG)
 
@@ -168,6 +189,27 @@ def modify_airflow_config():
         f.close()
 
     chown(AIRFLOW_CONFIG, os.environ['SUDO_UID'], os.environ['SUDO_GID'])
+
+
+def create_login_credentails():
+    print("""
+    
+    _____________________________________________________
+
+        CREATE AIRFLOW ADMIN LOGIN CREDENTIALS
+    _____________________________________________________
+
+    """)
+
+    try:
+        username = str(input("Enter username (default : admin) "))
+        password = getpass.getpass()
+        if username == '':
+            username = 'admin'
+        return (username, password,)
+    except Exception as error:
+        print('ERROR', error)
+        return (-1, -1,)
 
 
 def chown(path, uid, gid):
