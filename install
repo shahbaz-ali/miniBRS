@@ -142,6 +142,24 @@ def modify_airflow_config():
             value='False'
         )
 
+        config.set(
+            section="webserver",
+            option="authenticate",
+            value="True"
+        )
+
+        config.set(
+            section="webserver",
+            option="auth_backend",
+            value="airflow.contrib.auth.backends.password_auth"
+        )
+
+        config.set(
+            section="api",
+            option="auth_backend",
+            value="airflow.contrib.auth.backends.password_auth"
+        )
+
         f.close()
     os.remove(AIRFLOW_CONFIG)
 
