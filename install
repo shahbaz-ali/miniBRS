@@ -324,6 +324,13 @@ def reload_enable_airflow_scheduler_service():
                      executable='/bin/bash').communicate()
 
 
+def start_airflow():
+    print("starting mini-BRS")
+    subprocess.Popen(["service airflow-webserver start ; service airflow-scheduler start"],
+                     universal_newlines=True, stdout=subprocess.PIPE, shell=True,
+                     executable='/bin/bash').communicate()
+
+
 if __name__ == '__main__':
     print("Initializing setup...")
 
@@ -392,12 +399,8 @@ if __name__ == '__main__':
     '''''''''''''''''''''''''''''''''''''''''''''''''''''''''
     '                                                       '
     '       MINI_BRS HAS BEEN INSTALLED SUCCESSFULLY        '
-    '        ON YOUR MACHINE, PLEASE UPDATE YOUR            '
-    '       ENVIRONMENT VARIABLES BY EXECUTING THIS         '
-    '       COMMAND MANUALLY, ONCE                          '
-    '                                                       '
-    '       ~$ set -a; source /etc/environment; set +a;                      '
-    '                                                       '
     '                                                       '
     '''''''''''''''''''''''''''''''''''''''''''''''''''''''''
     """)
+
+    start_airflow()
