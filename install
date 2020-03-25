@@ -96,12 +96,12 @@ def check_python_version():
         print("Python version : 3.6 installed OK")
     else:
         print("""
-        
+
         _______________________________________________________________
-        
+
                         INSTALLATION TERMINATED                        
         _______________________________________________________________
-        
+
         You have Python version : 3.5 or below installed ")
         miniBRS uses Airflow version 1.10.9, which requires you to have
         python 3.6 or above, please make sure you have requirements fullfilled
@@ -129,40 +129,44 @@ def upgrade_pip():
             exit(2)
 
 
-def install_packages_from_requirement_file():
-
+def install_packages_from_requirement_file(context):
     (out, err) = subprocess.Popen(["sed /pkg-resources==0.0.0/d requirement.txt > output.txt"],
                                   universal_newlines=True, stdout=subprocess.PIPE, shell=True).communicate()
 
     print('removed pkg-resources==0.0.0 as requirement')
     print('installing requirements....')
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", "output.txt"])
+    subprocess.check_call([context.get_sys_executable(), "-m", "pip", "install", "-r", "output.txt"])
     subprocess.Popen(["rm output.txt"], universal_newlines=True, stdout=subprocess.PIPE, shell=True).communicate()
 
 
-def set_airflow_home_as_environment():
+def set_airflow_home_as_environment(context):
+    if not context.is_virtual:
+        global AIRFLOW_HOME
 
-    global AIRFLOW_HOME
+        AIRFLOW_HOME = os.getcwd()
 
-    AIRFLOW_HOME = os.getcwd()
+        os.environ["AIRFLOW_HOME"] = AIRFLOW_HOME
 
-    os.environ["AIRFLOW_HOME"] = AIRFLOW_HOME
+        subprocess.Popen(["sed -i '/AIRFLOW_HOME/d' /etc/environment"],
+                         universal_newlines=True, stdout=subprocess.PIPE, shell=True,
+                         executable="/bin/bash").communicate()
 
-    subprocess.Popen(["sed -i '/AIRFLOW_HOME/d' /etc/environment"],
-                     universal_newlines=True, stdout=subprocess.PIPE, shell=True,
-                     executable="/bin/bash").communicate()
+        subprocess.Popen(["sed -i '0,/PATH/ a\\AIRFLOW_HOME=\\\"{}\\\"' /etc/environment".format(AIRFLOW_HOME)],
+                         universal_newlines=True, stdout=subprocess.PIPE, shell=True,
+                         executable="/bin/bash").communicate()
 
-    subprocess.Popen(["sed -i '0,/PATH/ a\\AIRFLOW_HOME=\\\"{}\\\"' /etc/environment".format(AIRFLOW_HOME)],
-                     universal_newlines=True, stdout=subprocess.PIPE, shell=True,
-                     executable="/bin/bash").communicate()
+        subprocess.Popen(["source /etc/environment"],
+                         universal_newlines=True, stdout=subprocess.PIPE, shell=True,
+                         executable="/bin/bash").communicate()
+    else:
+        env = os.environ
+        env['AIRFLOW_HOME'] = os.getcwd()
+        subprocess.Popen(["source .env/bin/activate"], env=env, cwd=os.getcwd(),
+                         universal_newlines=True, stdout=subprocess.PIPE, shell=True,
+                         executable="/bin/bash").communicate()
 
-    subprocess.Popen(["source /etc/environment"],
-                     universal_newlines=True, stdout=subprocess.PIPE, shell=True,
-                     executable="/bin/bash").communicate()
 
-
-def modify_airflow_config():
-
+def modify_airflow_config(context):
     global AIRFLOW_CONFIG
     global AIRFLOW_CONFIG_TEST
     global AIRFLOW_DB
@@ -230,7 +234,7 @@ def modify_airflow_config():
 
 def create_login_credentails():
     print("""
-    
+
     _____________________________________________________
 
         CREATE AIRFLOW ADMIN LOGIN CREDENTIALS
@@ -253,18 +257,26 @@ def chown(path, uid, gid):
     os.chown(path=path, uid=int(uid), gid=int(gid))
 
 
-def airflow_initdb():
-
-    print('Initializing airflow meta-database')
-    subprocess.Popen(["airflow initdb"],
+def chown_r(path, uid):
+    env = os.environ
+    env['AIRFLOW_HOME'] = os.getcwd()
+    subprocess.Popen(["chown -R {}:{} {}".format(uid, uid, path)], cwd=os.getcwd(), env=env,
                      universal_newlines=True, stdout=subprocess.PIPE, shell=True,
                      executable='/bin/bash').communicate()
 
 
-def airflow_resetdb():
+def airflow_initdb(context):
+    print('Initializing airflow meta-database')
+    env = os.environ
+    env['AIRFLOW_HOME'] = os.getcwd()
+    subprocess.Popen(["{} initdb".format(context.get_airflow_executable())], cwd=os.getcwd(), env=env,
+                     universal_newlines=True, stdout=subprocess.PIPE, shell=True,
+                     executable='/bin/bash').communicate()
 
+
+def airflow_resetdb(context):
     print('Resetting airflow meta-database')
-    subprocess.Popen(["airflow resetdb -y"],
+    subprocess.Popen(["{} resetdb -y".format(context.get_airflow_executable())],
                      universal_newlines=True, stdout=subprocess.PIPE, shell=True,
                      executable='/bin/bash').communicate()
 
@@ -275,7 +287,6 @@ def create_system_service_entries():
     import pwd
 
     with open('/etc/systemd/system/airflow-webserver.service', 'w') as f:
-
         template = Template(TEMPLATE)
 
         output = template.render(
@@ -331,7 +342,45 @@ def start_airflow():
                      executable='/bin/bash').communicate()
 
 
+def create_python_virtual_environment():
+    print("Initializing python virtual environment ...")
+    subprocess.Popen(["python -m venv .env"],
+                     universal_newlines=True, stdout=subprocess.PIPE, shell=True,
+                     executable='/bin/bash').communicate()
+    subprocess.Popen(
+        ["sed -i \"\\$aexport AIRFLOW_HOME={}\" .env/bin/activate ; source .env/bin/activate".format(os.getcwd())],
+        universal_newlines=True, stdout=subprocess.PIPE, shell=True,
+        executable='/bin/bash').communicate()
+
+
 if __name__ == '__main__':
+
+    class Context:
+
+        def __init__(self, is_virtual: bool = False):
+            self.is_virtual = is_virtual
+
+        def get_sys_executable(self):
+
+            if self.is_virtual:
+                return '.env/bin/python'
+            else:
+                return '/usr/bin/python'
+
+        def get_airflow_executable(self):
+
+            if self.is_virtual:
+                return '.env/bin/airflow'
+            else:
+                return 'airflow'
+
+        def set_environment(self, is_virtual: bool = False):
+            self.is_virtual = is_virtual
+
+        def get_environment(self):
+            return self.is_virtual
+
+
     print("Initializing setup...")
 
     print("__________________________________________________")
@@ -352,13 +401,33 @@ if __name__ == '__main__':
     install_mysql_client()
     upgrade_setup_tools()
 
-    print("""   
+    print("_____________________________________________________________________________________")
+    print("                                                                                     ")
+    print("CREATE VIRTUAL ENVIRONMENT")
+    print("_____________________________________________________________________________________")
+
+    print('')
+    print('If you are a developer, than you should go for virtual environment installation')
+    print('by choosing virtual installation, mini-brs wont be installed as a service on this')
+    print('machine. You would need to start and stop the service yourself, after activating ')
+    print('the virtual environment !')
+    print('')
+
+    v = str(input("Do you want python virtual environment to be created ? (default : No) y/n: "))
+
+    context = Context()
+
+    if v.lower() == 'y' or v.lower() == 'yes':
+        context.set_environment(is_virtual=True)
+        create_python_virtual_environment()
+
+    print("""
   ____ ___ ____                 _       _ ____  ____  ____  
  / ___|_ _|  _ \      _ __ ___ (_)_ __ (_) __ )|  _ \/ ___| 
 | |    | || |_) |____| '_ ` _ \| | '_ \| |  _ \| |_) \___ \ 
 | |___ | ||  __/_____| | | | | | | | | | | |_) |  _ < ___) |
  \____|___|_|        |_| |_| |_|_|_| |_|_|____/|_| \_\____/ 
-        
+
     """)
 
 
@@ -378,29 +447,31 @@ if __name__ == '__main__':
 
     # upgrade_pip()
 
-    install_packages_from_requirement_file()
-    set_airflow_home_as_environment()
-    airflow_initdb()
-    modify_airflow_config()
+    install_packages_from_requirement_file(context)
+
+    set_airflow_home_as_environment(context)
+    airflow_initdb(context)
+    modify_airflow_config(context)
 
     # Change owner
     chown(AIRFLOW_CONFIG, os.environ['SUDO_UID'], os.environ['SUDO_GID'])
     chown(AIRFLOW_CONFIG_TEST, os.environ['SUDO_UID'], os.environ['SUDO_GID'])
     chown(AIRFLOW_DB, os.environ['SUDO_UID'], os.environ['SUDO_GID'])
+    chown_r('{}/logs'.format(os.getcwd()), os.environ['SUDO_USER'])
 
-    airflow_resetdb()
+    airflow_resetdb(context)
 
-    create_system_service_entries()
-    reload_enable__airflow_webserver_service()
-    reload_enable_airflow_scheduler_service()
+    if not context.is_virtual:
+        create_system_service_entries()
+        reload_enable__airflow_webserver_service()
+        reload_enable_airflow_scheduler_service()
+        start_airflow()
 
     print("""
-    
+
     '''''''''''''''''''''''''''''''''''''''''''''''''''''''''
     '                                                       '
     '       MINI_BRS HAS BEEN INSTALLED SUCCESSFULLY        '
     '                                                       '
     '''''''''''''''''''''''''''''''''''''''''''''''''''''''''
     """)
-
-    start_airflow()
