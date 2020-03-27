@@ -1,11 +1,12 @@
 #!/usr/bin/python3
 
+#            _       _       ____  ____  ____
 #  _ __ ___ (_)_ __ (_)     | __ )|  _ \/ ___|
 # | '_ ` _ \| | '_ \| |_____|  _ \| |_) \___ \
 # | | | | | | | | | | |_____| |_) |  _ < ___) |
 # |_| |_| |_|_|_| |_|_|     |____/|_| \_\____/
 #
-# ___           _        _ _       _   _
+#  ___           _        _ _       _   _
 # |_ _|_ __  ___| |_ __ _| | | __ _| |_(_) ___  _ __
 #  | || '_ \/ __| __/ _` | | |/ _` | __| |/ _ \| '_ \
 #  | || | | \__ \ || (_| | | | (_| | |_| | (_) | | | |
@@ -23,6 +24,7 @@ import subprocess
 import configparser
 import time
 import getpass
+import shutil
 
 AIRFLOW_HOME = None
 AIRFLOW_CONFIG = None
@@ -66,6 +68,15 @@ WantedBy=multi-user.target
 
 """
 
+# SqlAlchemy Connection string format :
+# <database client> ://<username>:<password>@<host>:<port>/<database>
+
+MYSQL_DEFAULT_PORT = 3306
+POSTGRES_DEFAULT_PORT = 5432
+
+AIRFLOW_CONN_MYSQL_DEFAULT = """mysql://{}:{}@{}:{}/{}"""
+AIRFLOW_CONN_POSTGRES_DEFAULT = """postgresql://{}:{}@{}:{}/{}"""
+
 
 def apt_update():
     subprocess.Popen(["apt-get update"],
@@ -104,7 +115,7 @@ def check_python_version():
 
         You have Python version : 3.5 or below installed ")
         miniBRS uses Airflow version 1.10.9, which requires you to have
-        python 3.6 or above, please make sure you have requirements fullfilled
+        python 3.6 or above, please make sure you have requirements full filled
         for further details checkout the docs section
         """)
         exit(1)
@@ -166,6 +177,79 @@ def set_airflow_home_as_environment(context):
                          executable="/bin/bash").communicate()
 
 
+def which_database():
+    print("""
+
+__________________________________________________________________
+
+        CONFIGURE AIRFLOW META-DATABASE 
+__________________________________________________________________
+
+If you are going to use MySQL or Postgres as your database,
+before proceeding this step, please ensure you have all the
+information in hand related to the database server you are going 
+to use. you need to fill the details such as HOST_NAME, USERNAME,
+PASSWORD, PORT, DATABASE_NAME in the subsequent steps 
+
+SQLite is not recommended in production environment, The above
+message does not apply to SQLite, you can proceed without the
+information if you want SQLite as your meta database  
+
+___________________________________________________________________
+
+which database you want to use as airflow meta-database ?
+
+(1) SQLite
+(2) MySQL
+(3) Postgres
+
+    """)
+
+    d_id = str(input('Enter your option  (default : 1) '))
+
+    if d_id == '':
+        d_id = 1
+
+    if int(d_id) in (1, 2, 3,):
+        from urllib.parse import quote_plus
+        connection_string = None
+
+        if d_id == 1:
+            pass
+        elif d_id == 2:
+            host = str(input("Enter database hostname (default : localhost) : "))
+            if host == '':
+                host = 'localhost'
+            user = str(input("Enter MySQL database username : "))
+            password = getpass.getpass()
+            port = str(input("MySQL port (default : 3306) : "))
+            if port == '':
+                port = 3306
+            database_name = str(input("Enter database name : "))
+
+            connection_string = AIRFLOW_CONN_MYSQL_DEFAULT.format(
+                user, quote_plus(password), host,  port, database_name
+            )
+        elif d_id == 3:
+            host = str(input("Enter database hostname (default : localhost) : "))
+            if host == '':
+                host = 'localhost'
+            user = str(input("Enter Postgres database username : "))
+            password = getpass.getpass()
+            port = str(input("MySQL port (default : 5432) : "))
+            if port == '':
+                port = 5432
+            database_name = str(input("Enter database name : "))
+            connection_string = AIRFLOW_CONN_POSTGRES_DEFAULT.format(
+                user, quote_plus(password), host, port, database_name
+            )
+
+        return connection_string
+    else:
+        print('Wrong option ,exiting installation')
+        exit(1)
+
+
 def modify_airflow_config(context):
     global AIRFLOW_CONFIG
     global AIRFLOW_CONFIG_TEST
@@ -178,6 +262,23 @@ def modify_airflow_config(context):
     config = configparser.ConfigParser()
     with open(AIRFLOW_CONFIG, 'r') as f:
         config.read_file(f)
+
+        connection_string = which_database()
+
+        if connection_string is None:
+            pass
+        else:
+            config.set(
+                section='core',
+                option='sql_alchemy_conn',
+                value=connection_string
+            )
+            config.set(
+                section='core',
+                option='executor',
+                value='LocalExecutor'
+            )
+
         config.set(
             section="core",
             option="load_examples",
@@ -235,10 +336,10 @@ def modify_airflow_config(context):
 def create_login_credentails():
     print("""
 
-    _____________________________________________________
+_____________________________________________________
 
-        CREATE AIRFLOW ADMIN LOGIN CREDENTIALS
-    _____________________________________________________
+    CREATE AIRFLOW ADMIN LOGIN CREDENTIALS
+_____________________________________________________
 
     """)
 
@@ -296,7 +397,7 @@ def create_system_service_entries():
             WANTS='postgresql.service mysql.service',
             USER=pwd.getpwuid(int(os.environ['SUDO_UID'])).pw_name,
             GROUP=grp.getgrgid(int(os.environ['SUDO_GID'])).gr_name,
-            EXE='/usr/local/bin/airflow webserver',
+            EXE=str(shutil.which('airflow')) + ' webserver',
             RESTART='on-failure'
         )
 
@@ -312,7 +413,7 @@ def create_system_service_entries():
             WANTS='postgresql.service mysql.service',
             USER=pwd.getpwuid(int(os.environ['SUDO_UID'])).pw_name,
             GROUP=grp.getgrgid(int(os.environ['SUDO_GID'])).gr_name,
-            EXE='/usr/local/bin/airflow scheduler',
+            EXE=str(shutil.which('airflow')) + ' scheduler',
             RESTART='always'
         )
 
@@ -449,6 +550,43 @@ if __name__ == '__main__':
 
 
     spinner = spinning_cursor()
+
+    if os.path.exists("{}/{}".format(os.getcwd(), 'airflow.cfg')):
+        print("'airflow.cfg' already exists, changing name to airflow.cfg.old")
+        try:
+            shutil.move(
+                "{}/{}".format(os.getcwd(), 'airflow.cfg'),
+                "{}/{}".format(os.getcwd(), 'airflow.cfg.old')
+            )
+        except Exception as e:
+            print("ERROR : Occurred while backing up the file, proceeding to delete")
+            print(e)
+            os.remove("{}/{}".format(os.getcwd(), 'airflow.cfg'))
+
+    if os.path.exists("{}/{}".format(os.getcwd(), 'airflow.db')):
+        print("'airflow.db' already exists, changing name to airflow.db.old")
+        try:
+            shutil.move(
+                "{}/{}".format(os.getcwd(), 'airflow.db'),
+                "{}/{}".format(os.getcwd(), 'airflow.db.old')
+            )
+        except Exception as e:
+            print("ERROR : Occurred while backing up the file, proceeding to delete")
+            print(e)
+            os.remove("{}/{}".format(os.getcwd(), 'airflow.db'))
+
+    if os.path.exists("{}/{}".format(os.getcwd(), 'unittests.cfg')):
+        print("'unittests.cfg' already exists, changing name to unittests.cfg.old")
+        try:
+            shutil.move(
+                "{}/{}".format(os.getcwd(), 'unittests.cfg'),
+                "{}/{}".format(os.getcwd(), 'unittests.cfg.old')
+            )
+        except Exception as e:
+            print("ERROR : Occurred while backing up the file, proceeding to delete")
+            print(e)
+            os.remove("{}/{}".format(os.getcwd(), 'unittests.cfg'))
+
     print("Initializing CIP-miniBRS : gathering requirements...", end='')
     for _ in range(50):
         sys.stdout.write(next(spinner))
