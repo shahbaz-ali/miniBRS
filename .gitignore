@@ -10,5 +10,5 @@ dags/generated/*
 !dags/generated/__init__.py
 backup
 airflow.cfg
-vf-leap-env
+.env
 scratchpad.py
