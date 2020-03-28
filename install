@@ -250,6 +250,54 @@ which database you want to use as airflow meta-database ?
         exit(1)
 
 
+def get_smtp_details():
+
+    print("""
+
+__________________________________________________________________
+
+        CONFIGURE EMAIL NOTIFICATIONS 
+__________________________________________________________________
+
+mini-BRS, has email alerting feature on failures, If you want to
+use email alerting feature you must have an email account with its
+SMTP details.  
+
+If you don't have SMTP details you can skip this step and configure
+later via airflow.cfg file.
+__________________________________________________________________
+
+    """)
+
+    agree = str(input("Do you want to use email alerting option (default : yes) y/n ? "))
+
+    if agree == '':
+        agree = 'y'
+
+    if agree.lower() == 'y' or agree.lower() == 'yes':
+        smtp_host = str(input('smtp host (e.g smtp.gmail.com): '))
+        if smtp_host == '':
+            print('smtp_host cannot be left empty !')
+        smtp_starttls = str(input('enable TLS (default : True) '))
+        if smtp_starttls == '':
+            smtp_starttls = 'True'
+        smtp_ssl = str(input('enable SSL (default : False) '))
+        if smtp_ssl == '':
+            smtp_ssl = 'False'
+        smtp_user = str(input('email address :'))
+        if smtp_user == '':
+            print('smtp_user cannot be left empty !')
+        smtp_password = getpass.getpass()
+        smtp_port = str(input('port (default : 587) '))
+        if smtp_port == '':
+            smtp_port = '587'
+
+        return tuple((smtp_host, smtp_starttls, smtp_ssl, smtp_user, smtp_password, smtp_port,))
+
+    else:
+        return None
+
+
 def modify_airflow_config(context):
     global AIRFLOW_CONFIG
     global AIRFLOW_CONFIG_TEST
@@ -262,6 +310,8 @@ def modify_airflow_config(context):
     config = configparser.ConfigParser()
     with open(AIRFLOW_CONFIG, 'r') as f:
         config.read_file(f)
+
+        # save database details in config
 
         connection_string = which_database()
 
@@ -278,6 +328,52 @@ def modify_airflow_config(context):
                 option='executor',
                 value='LocalExecutor'
             )
+
+        # save smtp details in config
+
+        smtp_details = get_smtp_details()
+        if smtp_details is None:
+            print('skipping email configuration !')
+        else:
+            (smtp_host, smtp_starttls, smtp_ssl, smtp_user, smtp_password, smtp_port,) = smtp_details
+
+            config.set(
+                section='smtp',
+                option='smtp_host',
+                value=smtp_host
+            )
+
+            config.set(
+                section='smtp',
+                option='smtp_starttls',
+                value=smtp_starttls
+            )
+
+            config.set(
+                section='smtp',
+                option='smtp_ssl',
+                value=smtp_ssl
+            )
+
+            config.set(
+                section='smtp',
+                option='smtp_user',
+                value=smtp_user
+            )
+
+            config.set(
+                section='smtp',
+                option='smtp_password',
+                value=smtp_password
+            )
+
+            config.set(
+                section='smtp',
+                option='smtp_port',
+                value=smtp_port
+            )
+
+        # login modifications
 
         config.set(
             section="core",
