@@ -11,6 +11,7 @@ from airflow.hooks.base_hook import BaseHook
 from airflow import settings
 from airflow import models
 from plugins.mbrs.utils.dates import get_start_date
+from airflow.exceptions import AirflowConfigException
 from plugins.mbrs.utils.exceptions import AirflowException
 from plugins.mbrs.utils.exceptions import ServiceNowConnectionNotFoundException
 from plugins.mbrs.utils.exceptions import S3ConnectionNotFoundException
@@ -237,9 +238,12 @@ def create_dags():
 
     global dag_creation_dates
     global new_dags
+    global email_notify_required
+
     new_dags = []
 
     dag_creation_dates = json.loads(Variable.get(key='dag_creation_dates'))
+    email_notify_required = is_email_notification_required()
 
     try:
         for table in config.get('tables'):
@@ -257,7 +261,8 @@ def create_dags():
                     'dag_id': table,
                     'frequency': config.get('frequency'),
                     'storage_type': storage_type,
-                    'start_date': start_date
+                    'start_date': start_date,
+                    'email_required': email_notify_required
                 }
             )
 
@@ -408,3 +413,20 @@ def is_storage_defined():
     except KeyError:
 
         raise StorageTypeNotFoundException
+
+
+def is_email_notification_required():
+
+    try:
+        configuration.get(
+            section='smtp',
+            key='smtp_user'
+        )
+        configuration.get(
+            section='smtp',
+            key='smtp_password'
+        )
+
+        return True
+    except AirflowConfigException:
+        return False

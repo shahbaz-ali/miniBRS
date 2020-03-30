@@ -214,9 +214,9 @@ which database you want to use as airflow meta-database ?
         from urllib.parse import quote_plus
         connection_string = None
 
-        if d_id == 1:
+        if int(d_id) == 1:
             pass
-        elif d_id == 2:
+        elif int(d_id) == 2:
             host = str(input("Enter database hostname (default : localhost) : "))
             if host == '':
                 host = 'localhost'
@@ -230,7 +230,7 @@ which database you want to use as airflow meta-database ?
             connection_string = AIRFLOW_CONN_MYSQL_DEFAULT.format(
                 user, quote_plus(password), host,  port, database_name
             )
-        elif d_id == 3:
+        elif int(d_id) == 3:
             host = str(input("Enter database hostname (default : localhost) : "))
             if host == '':
                 host = 'localhost'
@@ -432,10 +432,10 @@ def modify_airflow_config(context):
 def create_login_credentails():
     print("""
 
-_____________________________________________________
+____________________________________________________________________
 
     CREATE AIRFLOW ADMIN LOGIN CREDENTIALS
-_____________________________________________________
+____________________________________________________________________
 
     """)
 

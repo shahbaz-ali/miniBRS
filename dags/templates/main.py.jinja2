@@ -6,7 +6,9 @@ from plugins.mbrs.utils.dates import cron_presets
 from airflow import DAG
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.python_operator import PythonOperator, BranchPythonOperator
+{% if data.email_required is sameas true %}
 from plugins.mbrs.operators.common.email_operator import Email_Operator
+{% endif %}
 import typing
 from plugins.mbrs.utils.servicenow import fetch_servicenow_record_count, on_failure,clean_up
 from datetime import datetime,timedelta
@@ -47,7 +49,9 @@ count_less_than_threshold = DummyOperator(task_id='count_within_threshold',dag=d
 count_exceeds_threshold = DummyOperator(task_id='count_exceeds_threshold',dag=dag)
 count_equals_zero = DummyOperator(task_id='count_is_zero',dag=dag)
 
+{% if data.email_required is sameas true%}
 notify_submission_failure = Email_Operator(task_id='notify_submission_failure',dag=dag,trigger_rule='all_failed',provide_context=True,python_callable=typing.Callable)
+{% endif %}
 
 {% if data.storage_type == 'sftp' %}
 submission = ServiceNowToSFTPTransferOperator(task_id='send_data_to_submission',dag=dag,snow_id ='servicenow_default',config = 'config',storage_conn_id = 'sftp_default',table = table_name,execution_date=dag.params.get('execution_date'))
@@ -60,8 +64,18 @@ submission = ServiceNowToDropboxTransferOperator(task_id='send_data_to_submissio
 {% endblock %}
 
 start>>record_count>>[count_less_than_threshold,count_exceeds_threshold,count_equals_zero]
-count_less_than_threshold >> submission >>notify_submission_failure>> end
-end <<[count_exceeds_threshold,count_equals_zero,notify_submission_failure,submission]
+count_less_than_threshold >> submission >> end
+
+{% if data.email_required is sameas true%}
+submission.set_downstream(notify_submission_failure)
+notify_submission_failure.set_downstream(end)
+{%endif%}
+
+end <<[count_exceeds_threshold,count_equals_zero,submission]
+{% if data.email_required is sameas true%}
+end<<notify_submission_failure
+{%endif%}
+
 
 {% block unpause%}
 session = airflow.settings.Session()
