@@ -300,9 +300,10 @@ __________________________________________________________________
         agree = 'y'
 
     if agree.lower() == 'y' or agree.lower() == 'yes':
-        smtp_host = str(input('smtp host (e.g smtp.gmail.com): '))
+        smtp_host = str(input('smtp host (default : smtp.gmail.com) '))
         if smtp_host == '':
-            print('smtp_host cannot be left empty !')
+            smtp_host='smtp.gmail.com'
+            
         smtp_starttls = str(input('enable TLS (default : True) '))
         if smtp_starttls == '':
             smtp_starttls = 'True'
