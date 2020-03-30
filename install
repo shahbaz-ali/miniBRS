@@ -68,6 +68,21 @@ WantedBy=multi-user.target
 
 """
 
+MESSAGE_TEMPLATE = """
+
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+                                                                                       
+       MINI_BRS HAS BEEN INSTALLED SUCCESSFULLY                                        
+                                                                                       
+   Installation Type               : {{INSTALL_TYPE}}                                  
+   Project Directory               : {{PROJECT_DIR}}                                   
+   Airflow Path                    : {{AIRFLOW_DIR}}                                   
+   Meta-Database                   : {{META_DB}}                                       
+                                                                                       
+'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+"""
+
 # SqlAlchemy Connection string format :
 # <database client> ://<username>:<password>@<host>:<port>/<database>
 
@@ -76,6 +91,11 @@ POSTGRES_DEFAULT_PORT = 5432
 
 AIRFLOW_CONN_MYSQL_DEFAULT = """mysql://{}:{}@{}:{}/{}"""
 AIRFLOW_CONN_POSTGRES_DEFAULT = """postgresql://{}:{}@{}:{}/{}"""
+
+INSTALL_TYPE = 'as system-service'
+PROJECT_DIR = os.getcwd()
+AIRFLOW_DIR = "{}/{}".format(PROJECT_DIR, '.env/bin/')
+META_DB = None
 
 
 def apt_update():
@@ -205,6 +225,8 @@ which database you want to use as airflow meta-database ?
 
     """)
 
+    global META_DB
+
     d_id = str(input('Enter your option  (default : 1) '))
 
     if d_id == '':
@@ -215,8 +237,10 @@ which database you want to use as airflow meta-database ?
         connection_string = None
 
         if int(d_id) == 1:
+            META_DB = 'SQLite'
             pass
         elif int(d_id) == 2:
+            META_DB = 'MySQL'
             host = str(input("Enter database hostname (default : localhost) : "))
             if host == '':
                 host = 'localhost'
@@ -231,6 +255,7 @@ which database you want to use as airflow meta-database ?
                 user, quote_plus(password), host,  port, database_name
             )
         elif int(d_id) == 3:
+            META_DB = 'Postgres'
             host = str(input("Enter database hostname (default : localhost) : "))
             if host == '':
                 host = 'localhost'
@@ -626,6 +651,7 @@ if __name__ == '__main__':
     context = Context()
 
     if v.lower() == 'y' or v.lower() == 'yes':
+        INSTALL_TYPE = 'as python-virtual-environment'
         context.set_environment(is_virtual=True)
         create_python_virtual_environment()
 
@@ -712,11 +738,16 @@ if __name__ == '__main__':
         reload_enable_airflow_scheduler_service()
         start_airflow()
 
-    print("""
+    from jinja2 import Template
 
-    '''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-    '                                                       '
-    '       MINI_BRS HAS BEEN INSTALLED SUCCESSFULLY        '
-    '                                                       '
-    '''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-    """)
+    if not context.is_virtual:
+        AIRFLOW_DIR = shutil.which('airflow')
+
+    template = Template(MESSAGE_TEMPLATE)
+    print(template.render(
+        INSTALL_TYPE=INSTALL_TYPE,
+        PROJECT_DIR=PROJECT_DIR,
+        AIRFLOW_DIR=AIRFLOW_DIR,
+        META_DB=META_DB
+    ))
+
