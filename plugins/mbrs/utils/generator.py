@@ -45,47 +45,54 @@ new_dags = None
 
 def create_airflow_connection_default_servicenow():
 
-    connection = Connection(
-        conn_id='servicenow_default',
-        host='https://dev1234.service-now.com',
-        login='admin',
-        password='password'
-    )
-
     session = settings.Session()
-    session.add(connection)
-    session.commit()
-    session.close()
-    LoggingMixin().log.info("conn_id 'servicenow_default' initialized")
+
+    if len(session.query(Connection).filter(Connection.conn_id == 'servicenow_default').all()) == 0:
+        connection = Connection(
+            conn_id='servicenow_default',
+            host='https://dev1234.service-now.com',
+            login='admin',
+            password='password'
+        )
+
+
+        session.add(connection)
+        session.commit()
+        session.close()
+        LoggingMixin().log.info("conn_id 'servicenow_default' initialized")
 
 
 def create_airflow_connection_s3_default():
-
-    connection = Connection(
-        conn_id='s3_default',
-        login='<access_key>',
-        password='password'
-    )
-
     session = settings.Session()
-    session.add(connection)
-    session.commit()
-    session.close()
-    LoggingMixin().log.info("conn_id 's3_default' initialized")
+
+    if len(session.query(Connection).filter(Connection.conn_id == 's3_default').all()) == 0:
+        connection = Connection(
+            conn_id='s3_default',
+            login='<access_key>',
+            password='password'
+        )
+
+        session.add(connection)
+        session.commit()
+        session.close()
+        LoggingMixin().log.info("conn_id 's3_default' initialized")
 
 
 def create_airflow_connection_dropbox_default():
-    connection = Connection(
-        conn_id='dropbox_default',
-        login='<access_key>',
-        password='password'
-    )
-
     session = settings.Session()
-    session.add(connection)
-    session.commit()
-    session.close()
-    LoggingMixin().log.info("conn_id 'dropbox_default' initialized")
+
+    if len(session.query(Connection).filter(Connection.conn_id == 'dropbox_default').all()) == 0:
+        connection = Connection(
+            conn_id='dropbox_default',
+            login='<access_key>',
+            password='password'
+        )
+
+        session = settings.Session()
+        session.add(connection)
+        session.commit()
+        session.close()
+        LoggingMixin().log.info("conn_id 'dropbox_default' initialized")
 
 
 def create_airflow_rest_connection():
