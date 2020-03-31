@@ -52,7 +52,7 @@ class ServiceNowToSFTPTransferOperator(ServiceNowToGenericTransferOperator):
             dt_current = dt_current - timedelta(days=1)
             r_file_path = '{}/{}/{}/{}/{}'.format(
                 'mbrs',
-                'Servicenow',
+                'ServiceNow',
                 self.table,
                 '{}-{}-{}'.format(
                     dt_current.year,
@@ -63,7 +63,7 @@ class ServiceNowToSFTPTransferOperator(ServiceNowToGenericTransferOperator):
         else:
             r_file_path = '{}/{}/{}/{}/{}'.format(
                 'mbrs',
-                'Servicenow',
+                'ServiceNow',
                 self.table,
                 '{}-{}-{}'.format(
                     dt_current.year,

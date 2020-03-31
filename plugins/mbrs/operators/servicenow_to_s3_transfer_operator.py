@@ -13,9 +13,10 @@ from plugins.mbrs.hooks.amazon_s3_hook import S3HookWrapper
 from botocore.exceptions import ClientError
 import json
 
+
 class ServiceNowToS3TransferOperator(ServiceNowToGenericTransferOperator):
 
-    def _upload(self,context):
+    def _upload(self, context):
 
         try:
             # Load S3 storage_credentials
@@ -34,9 +35,8 @@ class ServiceNowToS3TransferOperator(ServiceNowToGenericTransferOperator):
 
         if exec_hour == '0' and exec_minute == '0' and exec_second == '0':
             dt_current = dt_current - timedelta(days=1)
-            r_file_path = '{}/{}/{}/{}/{}'.format(
-                '/mbrs',
-                'Servicenow',
+            r_file_path = '{}/{}/{}/{}'.format(
+                'ServiceNow',
                 self.table,
                 '{}-{}-{}'.format(
                     dt_current.year,
@@ -45,9 +45,8 @@ class ServiceNowToS3TransferOperator(ServiceNowToGenericTransferOperator):
                 ),
                 file_name)
         else:
-            r_file_path = '{}/{}/{}/{}/{}'.format(
-                '/mbrs',
-                'Servicenow',
+            r_file_path = '{}/{}/{}/{}'.format(
+                'ServiceNow',
                 self.table,
                 '{}-{}-{}'.format(
                     dt_current.year,
