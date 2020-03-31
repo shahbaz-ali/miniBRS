@@ -69,7 +69,8 @@ def create_airflow_connection_s3_default():
         connection = Connection(
             conn_id='s3_default',
             login='<access_key>',
-            password='password'
+            password='password',
+            extra='{"region-name":"ap-south-1","bucket-name":"mini-brs"}'
         )
 
         session.add(connection)
