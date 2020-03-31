@@ -28,7 +28,7 @@ class ServiceNowToSFTPTransferOperator(ServiceNowToGenericTransferOperator):
         except AirflowException as e:
             raise SFTPConnectionNotFoundException
 
-        l_file_path = self.file_name.replace('.csv', '.json')
+        l_file_path = self.file_name
         file_name = l_file_path[l_file_path.rfind('/') + 1:]
 
         paramiko.util.log_to_file(configuration.get_airflow_home()+ "/logs/paramiko.log")
