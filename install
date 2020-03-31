@@ -77,7 +77,27 @@ MESSAGE_TEMPLATE = """
    Installation Type               : {{INSTALL_TYPE}}                                  
    Project Directory               : {{PROJECT_DIR}}                                   
    Airflow Path                    : {{AIRFLOW_DIR}}                                   
-   Meta-Database                   : {{META_DB}}                                       
+   Meta-Database                   : {{META_DB}}       
+   
+   airflow.cfg
+   ----------------------------------------------------
+    [core]
+   
+    parallelism = 16
+    dag_concurrency = 8
+    max_active_runs_per_dag = 3    
+    
+    [webserver]
+    
+    worker = 1
+    authenticate = True
+    auth_backend = airflow.contrib.auth.backends.password_auth
+    
+    [scheduler]
+    
+    min_file_process_interval = 60
+    dag_dir_list_interval = 100   
+                                
                                                                                        
 '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
 
@@ -401,6 +421,8 @@ def modify_airflow_config(context):
 
         # login modifications
 
+        print('setting default values to airflow.cfg...')
+
         config.set(
             section="core",
             option="load_examples",
@@ -423,6 +445,42 @@ def modify_airflow_config(context):
             section="api",
             option="auth_backend",
             value="airflow.contrib.auth.backends.password_auth"
+        )
+
+        config.set(
+            section="webserver",
+            option="workers",
+            value='1'
+        )
+
+        config.set(
+            section="scheduler",
+            option="min_file_process_interval",
+            value='60'
+        )
+
+        config.set(
+            section="scheduler",
+            option="dag_dir_list_interval",
+            value='100'
+        )
+
+        config.set(
+            section="core",
+            option="parallelism",
+            value='16'
+        )
+
+        config.set(
+            section="core",
+            option="max_active_runs_per_dag",
+            value='3'
+        )
+
+        config.set(
+            section="core",
+            option="dag_concurrency",
+            value='8'
         )
 
         (username, password,) = create_login_credentails()
