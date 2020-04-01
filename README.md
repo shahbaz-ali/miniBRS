@@ -9,10 +9,11 @@ ingestion of Service Now data to any cloud or local network storage.
 
 **Table of Contents**
 
-* Requirements
-* Getting started
-* User Interface
-* Hooks & Operators
+* [Requirements](#requirements)
+* [Getting started](#getting-started)
+* [User Interface](#user-interface)
+* [Hooks & Operators](#hooks-&-operators)
+* [Service Now DAGs](#service-now-dags)
 
 
 ## Requirements
