@@ -5,7 +5,6 @@ from airflow import configuration
 class TestDagValidation(unittest.TestCase):
 
     def setUp(self):
-        print(f"HOME {configuration.get_airflow_home()}")
         self.dagbag = DagBag(dag_folder=configuration.get_airflow_home()+'/dags/generated')
 
     #OK
@@ -92,7 +91,7 @@ class TestDagValidation(unittest.TestCase):
         """
         test that the example are not loaded
         """
-        self.dagbag = DagBag(dag_folder='/home/muhammad/AF_assingments/mini-brs/dags/generated' , include_examples=False)
+        self.dagbag = DagBag(dag_folder=configuration.get_airflow_home() + '/dags/generated', include_examples=False)
         size=self.dagbag.size()
         print(f"SIZE {size}")
         self.assertEqual(size, 1)
