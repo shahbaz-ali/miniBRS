@@ -14,11 +14,12 @@ class TestDagValidation(unittest.TestCase):
 
     #OK
     def test_contain_cycles(self):
-        id='incident'
-        dag = self.dagbag.get_dag(id)
-        result=dag.test_cycle() #resturn false if cycles are not present
-        msg = f'Alert - The DAG with id {id} contain  cycle/cycles'
-        self.assertFalse(result,msg)
+        #id='incident'
+        for dag_id, _ in self.dagbag.dags.items():
+            dag = self.dagbag.get_dag(dag_id)
+            result=dag.test_cycle() #resturn false if cycles are not present
+            msg = f'Alert - The DAG with id \'{dag_id}\' contain  cycle/cycles'
+            self.assertFalse(result,msg)
 
 
     #OK
@@ -36,7 +37,7 @@ class TestDagValidation(unittest.TestCase):
 
         for dag_id, dag in self.dagbag.dags.items():
             emails = dag.default_args.get('email', [])
-            msg = 'Alert email not set for DAG {id}'.format(id=dag_id)
+            msg = 'Alert email not set for DAG \'{id}\''.format(id=dag_id)
             self.assertIn('majid.kundroo@gmial.com', emails, msg)
 
 
@@ -44,14 +45,14 @@ class TestDagValidation(unittest.TestCase):
     def test_is_owner_present(self):
            for dag_id, dag in self.dagbag.dags.items():
                owner = dag.default_args.get('owner', "")
-               msg = 'Alert - \'owner\' not set for DAG {id}'.format(id=dag_id)
+               msg = 'Alert - \'owner\' not set for DAG \'{id}\''.format(id=dag_id)
                self.assertEqual("BRS",owner,msg)
 
     #OK
     def test_is_schedule_interval_present(self):
            for dag_id, dag in self.dagbag.dags.items():
                schedule_interval = dag.schedule_interval
-               msg = 'Alert - \'schedule_interval\' not set for DAG {id}'.format(id=dag_id)
+               msg = 'Alert - \'schedule_interval\' not set for DAG \'{id}\''.format(id=dag_id)
                self.assertGreater(len(schedule_interval),0,msg)
 
     #OK
