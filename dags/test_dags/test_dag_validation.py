@@ -1,10 +1,12 @@
 import unittest
 from airflow.models import DagBag
+from airflow import configuration
 
 class TestDagValidation(unittest.TestCase):
 
     def setUp(self):
-        self.dagbag = DagBag(dag_folder='/home/muhammad/AF_assingments/mini-brs/dags/generated')
+        print(f"HOME {configuration.get_airflow_home()}")
+        self.dagbag = DagBag(dag_folder=configuration.get_airflow_home()+'/dags/generated')
 
     #OK
     def test_contain_cycles(self):
