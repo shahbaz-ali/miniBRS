@@ -1,3 +1,8 @@
+
+'''
+ To test the validity of the DAG, checking typos and cyclicity.
+'''
+
 import unittest
 from airflow.models import DagBag
 from airflow import configuration
