@@ -14,6 +14,7 @@ ingestion of Service Now data to any cloud or local network storage.
 * [User Interface](#user-interface)
 * [Hooks & Operators](#hooks-&-operators)
 * [Service Now DAGs](#service-now-dags)
+* [Who Maintains Mini BRS ?](#who-maintains-mini-brs-?)
 
 
 ## Requirements
@@ -97,3 +98,31 @@ Once you activate you virtual environment you can start Airflow webserver and sc
 ``` 
 
 ## User Interface
+
+Apache Airflow provides a great UI for monitoring of you DAGs
+
+* **DAGs**: mini-BRS overview of DAGs
+
+![](images/mbrs_dags.png)
+
+* **Graph View**: generated Service Now DAG's dependencies and their current status for a specific run.
+
+![](images/mbrs_graph_view.png)
+
+
+## Hooks & Operators
+Current version of mini BRS contains Hooks and Operators designed for Service Now platform. Following Operators and Hooks
+are the part of current release and in future various other operators and hooks will be released to support cloud platforms
+
+**Hook's**
+*  servicenow_hook
+
+**Operator's**
+* servicenow_to_sftp_transfer_operator
+* servicenow_to_s3_transfer_operator
+* servicenow_to_dropbox_transfer_operator
+
+## Who Maintains Mini BRS ?
+Mini BRS is the work of the open source team of Cloud Innovation Partners (CIP), but the core committers/maintainers are
+responsible for reviewing and merging PRs as well as steering conversation around new feature requests. 
+If you would like to become a maintainer, please review the Mini BRS committer requirements.
