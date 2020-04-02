@@ -1,9 +1,12 @@
 #   mbrs
 #   Copyright (c)Cloud Innovation Partners 2020.
 #   Author : Shahbaz Ali
+from future.standard_library import exclude_local_folder_imports
 
+from dags.dag_cleanup import dag
 from plugins.mbrs.hooks.servicenow_hook import ServiceNowHook
-from plugins.mbrs.utils.exceptions import ServiceNowConnectionNotFoundException, ConfigVariableNotFoundException
+from plugins.mbrs.utils.exceptions import ServiceNowConnectionNotFoundException, ConfigVariableNotFoundException, \
+    InvalidArguments
 from airflow.utils.log.logging_mixin import LoggingMixin
 from airflow.utils.db import provide_session
 from plugins.mbrs.modals.recovery_modals import FailedDagRun
@@ -15,6 +18,13 @@ from airflow.exceptions import AirflowException
 import json,pendulum
 from datetime import datetime,timedelta
 
+def is_empty(arg):
+    arg=str(arg) # if arg is the type of date object, convert it into string first
+    if len(arg.strip()) == 0:
+        return True
+    else:
+        return False
+
 
 def fetch_servicenow_record_count(table_name, execution_date, **kwargs):
     """
@@ -24,6 +34,14 @@ def fetch_servicenow_record_count(table_name, execution_date, **kwargs):
     :param: execution_date : airflow execution date of the dag
     :return: task_id
     """
+
+    #check for empty
+    if is_empty(table_name) or is_empty(execution_date):
+        raise  InvalidArguments("table_name, execution_date can't be empty")
+
+    #check for none
+    if table_name == None or execution_date == None:
+        raise InvalidArguments("table_name, execution_date can't be None")
 
     try:
 
@@ -142,6 +160,14 @@ def on_failure_email(dag_id, task_id, message):
     :return: None
     """
 
+    # check for empty
+    if is_empty(dag_id) or is_empty(task_id) or is_empty(message):
+        raise InvalidArguments("dag_id, task_id and message can't be empty")
+
+    # check for none
+    if dag_id == None or task_id == None:
+        raise InvalidArguments("dag_id, task_id and message can't be None")
+
     message = '<img src="https://airflow.apache.org/images/feature-image.png" width="400" height="100"/>' \
               '<h2>AIRFLOW TASK FAILURE:</h2><hr/>' \
               '<strong>DAG : </strong>    {} <br/><hr/>' \
@@ -175,6 +201,14 @@ def on_failure_context(dag_id, task_id, execution_date, msg, run_id):
     :param run_id: str, dag run_id
     :return: None
     """
+
+    # check for empty
+    if is_empty(dag_id) or is_empty(task_id) or is_empty(execution_date) or is_empty(msg) or is_empty(run_id):
+        raise InvalidArguments("dag_id, task_id ,execution_date, message and run_id can't be empty")
+
+    # check for none
+    if dag_id == None or task_id == None or execution_date == None or msg == None or run_id == None:
+        raise InvalidArguments("dag_id, task_id ,execution_date, message and run_id can't be None")
 
     execution_date = execution_date.replace('T', ' ')[0:19]
     key = '{}${}'.format(execution_date, dag_id)
@@ -224,6 +258,15 @@ def on_failure(**kwargs):
 
 @provide_session
 def clean_up(dag_id, execution_date, session=None):
+
+    # check for empty
+    if is_empty(dag_id) or is_empty(execution_date) or is_empty(session) :
+        raise InvalidArguments("dag_id, task_id ,execution_date and session can't be empty")
+
+    # check for none
+    if dag_id == None or execution_date == None:
+        raise InvalidArguments("dag_id, task_id can't be None")
+
 
     try:
 
