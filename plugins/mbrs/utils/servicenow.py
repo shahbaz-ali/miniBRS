@@ -14,7 +14,14 @@ from airflow.models import Variable
 from airflow.exceptions import AirflowException
 import json,pendulum
 from datetime import datetime,timedelta
+from plugins.mbrs.utils.exceptions import InvalidArguments
 
+def is_empty(arg):
+    arg=str(arg)  #is date object is the argument, convert it into string first
+    if len(arg.strip()) == 0:
+        return True
+    else:
+        return False
 
 def fetch_servicenow_record_count(table_name, execution_date, **kwargs):
     """
@@ -24,6 +31,14 @@ def fetch_servicenow_record_count(table_name, execution_date, **kwargs):
     :param: execution_date : airflow execution date of the dag
     :return: task_id
     """
+
+    #check for empty
+    if is_empty(table_name) or is_empty(execution_date):
+        raise InvalidArguments("Invalid Argumnets")
+
+    #check for none
+    if table_name == None or execution_date == None:
+        raise  InvalidArguments("Invalid Arguments")
 
     try:
 
@@ -141,6 +156,9 @@ def on_failure_email(dag_id, task_id, message):
     :param message: str, exception trace that lead to the failure
     :return: None
     """
+    #check for empty
+    if is_empty(dag_id) or is_empty(task_id) or is_empty(message):
+        raise InvalidArguments("Invalid Arguments")
 
     message = '<img src="https://airflow.apache.org/images/feature-image.png" width="400" height="100"/>' \
               '<h2>AIRFLOW TASK FAILURE:</h2><hr/>' \
@@ -175,6 +193,10 @@ def on_failure_context(dag_id, task_id, execution_date, msg, run_id):
     :param run_id: str, dag run_id
     :return: None
     """
+
+    #check for empty
+    if is_empty(dag_id) or is_empty(task_id) or is_empty(execution_date) or is_empty(msg) or is_empty(run_id):
+        raise  InvalidArguments("Invalid Arguments")
 
     execution_date = execution_date.replace('T', ' ')[0:19]
     key = '{}${}'.format(execution_date, dag_id)
@@ -224,6 +246,11 @@ def on_failure(**kwargs):
 
 @provide_session
 def clean_up(dag_id, execution_date, session=None):
+
+    # check for empty
+
+    if is_empty(dag_id) or is_empty(execution_date) or is_empty(session):
+        raise InvalidArguments("Invalid Arguments")
 
     try:
 
