@@ -26,11 +26,6 @@ handler.setFormatter(formatter)
 log.addHandler(handler)
 
 
-def is_empty(arg):
-    if len(arg.strip()) == 0:
-        return True
-    else:
-        return False
 
 class ServiceNowClient(object):
 
@@ -97,13 +92,6 @@ class ServiceNowClient(object):
         msg = 'Cannot access ServiceNow: No valid ServiceNow credentials supplied. ' \
               'add host and login details to the client call'
 
-        #check for none
-        if host == None or login==None or password == None:
-            raise InvalidArguments("Invalid Argumnets")
-
-        #check for empty
-        if is_empty(host) or is_empty(login) or is_empty(password):
-            raise InvalidArguments("Invalid Arguments")
 
 
         #Using Basic Authentication
