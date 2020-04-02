@@ -1,7 +1,9 @@
 import unittest
 from datetime import  datetime
 from plugins.mbrs.utils.servicenow import fetch_servicenow_record_count,on_failure_email,on_failure_context,clean_up
-from plugins.mbrs.utils.exceptions import InvalidArguments, ConfigVariableNotFoundException,ServiceNowConnectionNotFoundException
+from plugins.mbrs.utils.exceptions import ConfigVariableNotFoundException, ServiceNowConnectionNotFoundException, \
+    InvalidArguments
+
 
 class TestServiceNow(unittest.TestCase):
 
@@ -22,7 +24,7 @@ class TestServiceNow(unittest.TestCase):
     def test_on_failure_email(self):
 
       with self.assertRaises(InvalidArguments):
-          on_failure_email("", "", "")
+          on_failure_email("  ", "", "")
 
       with self.assertRaises(InvalidArguments):
            on_failure_email("incident", "any_tag_id","")

@@ -33,15 +33,6 @@ class TestDagValidation(unittest.TestCase):
 
 
     #OK
-    def test_alert_email_present(self):
-
-        for dag_id, dag in self.dagbag.dags.items():
-            emails = dag.default_args.get('email', [])
-            msg = 'Alert email not set for DAG \'{id}\''.format(id=dag_id)
-            self.assertIn('majid.kundroo@gmial.com', emails, msg)
-
-
-     #OK
     def test_is_owner_present(self):
            for dag_id, dag in self.dagbag.dags.items():
                owner = dag.default_args.get('owner', "")
@@ -73,7 +64,7 @@ class TestDagValidation(unittest.TestCase):
         """
         Test that we're able to parse some DAGs from generated folder and retrieve them
         """
-        some_expected_dag_ids = ["incident"] # ["incident", "problem"]
+        some_expected_dag_ids = [dag_id for dag_id, _ in self.dagbag.dags.items()] # ["incident", "problem"]
 
         for dag_id in some_expected_dag_ids:
             dag = self.dagbag.get_dag(dag_id)
@@ -89,7 +80,7 @@ class TestDagValidation(unittest.TestCase):
 
         non_existing_dag_id = "non_existing_dag_id"
         dag=self.dagbag.get_dag(non_existing_dag_id) #must return none , because the "non_existing_dag_id"
-                                                    # is the ID of ant DAG
+                                                    # is not the ID of any DAG
         self.assertIsNone(dag)
 
     #OK
