@@ -25,6 +25,12 @@ handler.setFormatter(formatter)
 #add handler to logger
 log.addHandler(handler)
 
+def is_empty(arg):
+    arg=str(arg) # if arg is the type of date object, convert it into string first
+    if len(arg.strip()) == 0:
+        return True
+    else:
+        return False
 
 
 class ServiceNowClient(object):
@@ -93,6 +99,13 @@ class ServiceNowClient(object):
               'add host and login details to the client call'
 
 
+        # check for empty
+        if is_empty(host) or is_empty(login):
+            raise InvalidArguments("host, login can't be empty")
+
+        # check for none
+        if host == None or login == None:
+            raise InvalidArguments("table_name, execution_date can't be None")
 
         #Using Basic Authentication
 
