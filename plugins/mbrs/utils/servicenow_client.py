@@ -7,6 +7,8 @@ import logging
 
 
 #create a logger
+from plugins.mbrs.utils.exceptions import InvalidArguments
+
 log = logging.getLogger(__name__)
 #set log level
 log.setLevel(logging.INFO)
@@ -24,6 +26,11 @@ handler.setFormatter(formatter)
 log.addHandler(handler)
 
 
+def is_empty(arg):
+    if len(arg.strip()) == 0:
+        return True
+    else:
+        return False
 
 class ServiceNowClient(object):
 
@@ -69,6 +76,8 @@ class ServiceNowClient(object):
                 -host,logn,password,refresh_token,token
     '''
 
+
+
     AUTH_TYPE_BASIC = 0
     AUTH_TYPE_BEARER = 1
 
@@ -87,6 +96,15 @@ class ServiceNowClient(object):
 
         msg = 'Cannot access ServiceNow: No valid ServiceNow credentials supplied. ' \
               'add host and login details to the client call'
+
+        #check for none
+        if host == None or login==None or password == None:
+            raise InvalidArguments("Invalid Argumnets")
+
+        #check for empty
+        if is_empty(host) or is_empty(login) or is_empty(password):
+            raise InvalidArguments("Invalid Arguments")
+
 
         #Using Basic Authentication
 
