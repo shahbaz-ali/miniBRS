@@ -172,3 +172,17 @@ class BadStartDatePreset(AirflowException):
             return "BadStartPreset, {}".format(self.message)
         else:
             return "BadStartPreset has been raised"
+
+class InvalidArguments(AirflowException):
+
+    def __init__(self, *args):
+        if args:
+            self.message = args[0]
+        else:
+            self.message = "Parameters are empty or invalid"
+
+    def __str__(self):
+        if self.message:
+            return "InvalidArguments, {}".format(self.message)
+        else:
+            return "InvalidArguments has been raised"
