@@ -12,9 +12,9 @@ ingestion of Service Now data to any cloud or local network storage.
 * [Requirements](#requirements)
 * [Getting started](#getting-started)
 * [User Interface](#user-interface)
+* [How to Use](#how-to-use)
 * [Hooks & Operators](#hooks-&-operators)
-* [Service Now DAGs](#service-now-dags)
-* [Who Maintains Mini BRS ?](#who-maintains-mini-brs-?)
+* [Who Maintains Mini BRS](#who-maintains-mini-brs)
 
 
 ## Requirements
@@ -109,6 +109,61 @@ Apache Airflow provides a great UI for monitoring of you DAGs
 
 ![](images/mbrs_graph_view.png)
 
+## How to Use
+Mini BRS use Apache Airflow as a work flow management platform, if you are not aware of basic concepts of Airflow please
+checkout the [documentation](https://airflow.apache.org/docs/stable/concepts.html)  
+
+
+### Variables
+With Mini BRS you can ingest your Service Now data to cloud platforms. Few things to know before moving ahead with Mini BRS
+
+Mini BRS uses Airflow Variable as a single point to configure Service Now work flows. Once you have installed Mini BRS 
+you can find configuration variables via Airflow UI, goto Admin link in nav bar, click Variables options you will see 
+few variables already defined. these variables need to be present for Mini BRS functioning
+![](images/variables.png)
+
+**config**: ```config``` variable provides you options to generate work flows. it uses JSON format to store values. 
+
+```json
+{
+  "tables": ["incident","problem","sc_request"], 
+  "start_date": "1da", 
+  "frequency": "hourly", 
+  "threshold": 10000, 
+  "export_format": "xml", 
+  "storage_type": "dropbox", 
+  "email": ""
+}
+```
+
+Options
+
+ - tables : ```tables[]``` is an array where you can add the Service Now table names as comma separated values from which
+ you want to ingest data to the storage. please ensure the values inside the table should be valid Service Now table names
+ 
+ - start_date : ```start_date``` provides you a way to get historical data from your Service Now instance. its takes values
+ of format ```xda``` where ```x``` is an integer value and specifies the number of days to go back in time to get fetch data
+ 
+ - frequency : ```frequency``` refers the schedule interval of the work flow. its can take value such as ```half-hourly```,
+ ```hourly```, ```daily``` etc. 
+ 
+ - threshold : ```threshold``` is used to specify the threshold of records fetched from the Service Now instance. by default 
+ its placed at its maximum value of 10000, placing a value greater than 10000 is not going to do any good, if the threshold 
+ of data records for a specific run exceeds threshold no data will be fetched for that period
+ 
+ - export_type: ```export_type``` is used to specify the format of data to be stored in the storage, default is ```xml```
+ 
+ - storage_type: ```storage_type``` is used to specify the type of storage to used for ingesting data, currently mini BRS
+  has three storage's supported AmazonS3, DropBox, SFTP the credentials of these storage's are to be stored in 
+  Airflow Connections in their specific connection_ids.
+  
+ - email: ```email``` If you have configured SMTP server details during installation or you have manually set them in
+ ```airflow.cfg``` file  then you can specify the email_address here to which the failure alerts should be sent.
+ 
+ 
+ The other two variables ```dag_creation_dates``` and ```r_config``` are meant for internal usage, there presence is
+ necessary for normal functioning of Mini BRS
+
 
 ## Hooks & Operators
 Current version of mini BRS contains Hooks and Operators designed for Service Now platform. Following Operators and Hooks
@@ -122,7 +177,7 @@ are the part of current release and in future various other operators and hooks 
 * servicenow_to_s3_transfer_operator
 * servicenow_to_dropbox_transfer_operator
 
-## Who Maintains Mini BRS ?
-Mini BRS is the work of the open source team of Cloud Innovation Partners (CIP), but the core committers/maintainers are
+
+## Who Maintains Mini BRS
+Mini BRS is the work of the open source team of Cloud Innovation Partners (CIP), and CIP team is 
 responsible for reviewing and merging PRs as well as steering conversation around new feature requests. 
-If you would like to become a maintainer, please review the Mini BRS committer requirements.
