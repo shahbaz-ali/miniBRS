@@ -450,7 +450,7 @@ def modify_airflow_config(context):
         config.set(
             section="webserver",
             option="workers",
-            value='1'
+            value='2'
         )
 
         config.set(
@@ -481,6 +481,12 @@ def modify_airflow_config(context):
             section="core",
             option="dag_concurrency",
             value='8'
+        )
+
+        config.set(
+            section="core",
+            option="secure_mode",
+            value="True"
         )
 
         (username, password,) = create_login_credentails()
@@ -618,7 +624,10 @@ def reload_enable_airflow_scheduler_service():
 
 def start_airflow():
     print("starting mini-BRS")
-    subprocess.Popen(["service airflow-webserver start ; service airflow-scheduler start"],
+    subprocess.Popen(["service airflow-webserver start"],
+                     universal_newlines=True, stdout=subprocess.PIPE, shell=True,
+                     executable='/bin/bash').communicate()
+    subprocess.Popen(["service airflow-scheduler start"],
                      universal_newlines=True, stdout=subprocess.PIPE, shell=True,
                      executable='/bin/bash').communicate()
 
@@ -792,9 +801,12 @@ if __name__ == '__main__':
     airflow_resetdb(context)
 
     if not context.is_virtual:
+        print("creating service entries for airflow...")
         create_system_service_entries()
         reload_enable__airflow_webserver_service()
         reload_enable_airflow_scheduler_service()
+        print("starting airflow as a service...")
+        time.sleep(5)
         start_airflow()
 
     from jinja2 import Template
