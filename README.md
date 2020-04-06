@@ -1,9 +1,9 @@
 # CIP - mini-BRS
 
-mini BRS is platform that provides Service Now data backup facility via programmatic work flows scheduled and monitored
+mini BRS is a tool that provides Service Now data backup facility via programmatic work flows scheduled and monitored
 by Apache Airflow. mini BRS uses Airflow in back end as work flow management tool
 
-mini BRS provides you bunch of work flows (DAGs) that help you in getting your Service Now data needs satisfied. You can
+mini BRS provides you work flows (DAGs) that help getting Service Now data exported regularly. You can
 use existing DAGs or can create your own custom DAGs, mini BRS provides you a scalable platform which helps you with the
 ingestion of Service Now data to any cloud or local network storage.
 
@@ -23,9 +23,9 @@ Mini BRS is tested with:
 
 ### Master version
 
-* Python versions: 3.6
-* Postgres DB: 9.6, 10
-* MySQL DB: 5.7
+* Python versions: 3.6.9
+* Postgres DB: 10.12
+* MySQL DB: 8.0
 * Sqlite - latest stable (it is used mainly for development purpose)
 
 Mini BRS is tested on
@@ -41,6 +41,22 @@ Mini BRS is tested on
 ```bash
 ~$ git clone https://gitlab.com/shahbaz.ali/mini-brs.git
 ```
+
+## Things to keep handy !
+
+>mini BRS has an installer script associated with it that helps you in getting right things installed on your system. 
+we encourage use of installer for installing mini BRS. The installer is interactive and will require information from 
+user side to get things configured rightly. please make sure you have following information in hand, so that you don't 
+get stuck during installation process.
+>* Do you want to install mini BRS as a service on your server or you just require it to be started manually ?
+>* mini BRS requires database for its functioning, make sure you have following info in hand, database host ip,
+username, password, port, database name.
+>* If you want to have email alerting, make sure you have SMTP server details like smtp_host, smtp_port, email address and
+password in hand. if you want to use Gmail, Outlook or any other email provider make sure you generate app password for 
+that email address. In order to know more how to generate app password for you email address checkout this link
+[create and use app passwords](https://support.google.com/accounts/answer/185833?hl=en)  
+
+
 
 2. execute ```install``` script inside the project folder using ```sudo``` command
 
@@ -113,13 +129,50 @@ Apache Airflow provides a great UI for monitoring of you DAGs
 Mini BRS use Apache Airflow as a work flow management platform, if you are not aware of basic concepts of Airflow please
 checkout the [documentation](https://airflow.apache.org/docs/stable/concepts.html)  
 
+### What Mini BRS Can Do ?
+* It can be used to backup you Service Now data
+* It can be used to ingest historical data to cloud storage's
+* Can be used to orchestrate your custom work flows for Service Now
+
+
+### Connections
+Before running any work flows (DAG's) make sure you specify requisite connections to the external services required for
+functioning of work flows
+
+connection's can be found via **Admin** tab in the navigation bar, Click on Admin tab and select **Connections** from the
+drop down menu, you will be redirected to airflow connections page, Airflow allows you to store your external connection
+details in the meta database via this page. few connections are of specific importance to mini BRS and you as a user is
+required to configure these connections based on your specific needs. Let's have a look at few of the connections that
+we need to be sure of.  
+
+#### servicenow_default:
+```servicenow_default``` is the connection entry in the meta database which will hold your service now instance credentials.
+This connection is where you would store your service now instance url and login credentials. If you edit this connection
+by clicking on the edit connection icon, you will have form with fields like Conn Id, Conn Type, Host etc. please do not 
+change the Conn Id value. Add your service now instance url to Host field of the form you need to add the url with 'https'
+option added e.g if you instance is dev1234.service-now.com save it as https://dev1234.service-now.com in the 'Host' field
+of the form, Also you need to add service now user name to 'Login' field and password to 'Password' field of the form.
+
+#### sftp_default:
+```sftp_connection``` If you want to ingest your service now instance data to an SFTP account, you can add the SFTP connection
+details in this Connection entry. Add sftp account name in the `Login` field and sftp account password in the `Password`
+field of the form, nothing else needs to be changed.
+
+#### s3_default:
+```s3_default``` If you want to ingest your service now instance data to Amazon S3 account, you need to have 'access_key_id' 
+and 'secret_key_id' for your s3 storage. Add `access_key_id` to `Login` and `secret_key_id` to `Password` field of the 
+`s3_default` connection 
+
+#### dropbox_default:
+`dropbox_default` mini BRS provides you an option to ingest your service now instance data to `Dropbox` account for this
+you need to generate `access_token` for your dropbox account and add that `access_token` to the `Password` field of the
+connection. In order to generate `access_token` for you account please check out the following [link](#)
 
 ### Variables
-With Mini BRS you can ingest your Service Now data to cloud platforms. Few things to know before moving ahead with Mini BRS
-
-Mini BRS uses Airflow Variable as a single point to configure Service Now work flows. Once you have installed Mini BRS 
-you can find configuration variables via Airflow UI, goto Admin link in nav bar, click Variables options you will see 
-few variables already defined. these variables need to be present for Mini BRS functioning
+Mini BRS uses Airflow Variable as a single point to configure Service Now work flows. Once you have installed Mini BRS and 
+added service now and storage connection details to the there respective connection ids, you can configure your work flows 
+via configuration variables provided by mini BRS. you can find configuration variables via Airflow UI, goto Admin link in nav bar, 
+click Variables options you will see few variables already defined. these variables are needed to be present for Mini BRS functioning
 ![](images/variables.png)
 
 **config**: ```config``` variable provides you options to generate work flows. it uses JSON format to store values. 
