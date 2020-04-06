@@ -10,6 +10,7 @@ ingestion of Service Now data to any cloud or local network storage.
 **Table of Contents**
 
 * [Requirements](#requirements)
+* [Things to keep handy !](#things-to-keep-handy-!)
 * [Getting started](#getting-started)
 * [User Interface](#user-interface)
 * [How to Use](#how-to-use)
@@ -32,6 +33,20 @@ Mini BRS is tested on
 
 * OS Ubuntu 18.04 - minimum 1 GiB memory & 8 GiB storage.
 
+## Things to keep handy !
+
+mini BRS has an installer script associated with it that helps you in getting right things installed on your system. 
+we encourage use of installer for installing mini BRS. The installer is interactive and will require information from 
+user side to get things configured rightly. please make sure you have following information in hand, so that you don't 
+get stuck during installation process.
+* Do you want to install mini BRS as a service on your server or you just require it to be started manually ?
+* mini BRS requires database for its functioning, make sure you have following info in hand, database *host ip*,
+*username*, *password*, *port*, *database name*.
+* If you want to have email alerting, make sure you have SMTP server details like *smtp_host*, *smtp_port*, *email address* and
+*password* in hand. if you want to use Gmail, Outlook or any other email provider make sure you generate `app password` for 
+that email address. In order to know how to generate `app password` for your email address checkout this link
+[create and use app passwords](https://support.google.com/accounts/answer/185833?hl=en)  
+
 ## Getting started
 
 **Installation**
@@ -41,22 +56,6 @@ Mini BRS is tested on
 ```bash
 ~$ git clone https://gitlab.com/shahbaz.ali/mini-brs.git
 ```
-
-## Things to keep handy !
-
->mini BRS has an installer script associated with it that helps you in getting right things installed on your system. 
-we encourage use of installer for installing mini BRS. The installer is interactive and will require information from 
-user side to get things configured rightly. please make sure you have following information in hand, so that you don't 
-get stuck during installation process.
->* Do you want to install mini BRS as a service on your server or you just require it to be started manually ?
->* mini BRS requires database for its functioning, make sure you have following info in hand, database host ip,
-username, password, port, database name.
->* If you want to have email alerting, make sure you have SMTP server details like smtp_host, smtp_port, email address and
-password in hand. if you want to use Gmail, Outlook or any other email provider make sure you generate app password for 
-that email address. In order to know more how to generate app password for you email address checkout this link
-[create and use app passwords](https://support.google.com/accounts/answer/185833?hl=en)  
-
-
 
 2. execute ```install``` script inside the project folder using ```sudo``` command
 
@@ -94,7 +93,7 @@ your machine. You can check the status of the service by
 ``` 
 
 If you have installed mini BRS as a python virtual environment then you will be having a folder named ```.env``` created
-in ```mini-brs``` folder. This folder is the python virtual environment and you can use following command you activate 
+in ```mini-brs``` folder. This folder is the python virtual environment and you can use following command to activate it
 
 >make sure your current working directory is ```mini-brs``` 
 
@@ -149,22 +148,22 @@ we need to be sure of.
 ```servicenow_default``` is the connection entry in the meta database which will hold your service now instance credentials.
 This connection is where you would store your service now instance url and login credentials. If you edit this connection
 by clicking on the edit connection icon, you will have form with fields like Conn Id, Conn Type, Host etc. please do not 
-change the Conn Id value. Add your service now instance url to Host field of the form you need to add the url with 'https'
-option added e.g if you instance is dev1234.service-now.com save it as https://dev1234.service-now.com in the 'Host' field
+change the Conn Id value. Add your service now instance url to Host field of the form, You need to add the url with 'https'
+option added e.g if your instance is dev1234.service-now.com save it as https://dev1234.service-now.com in the 'Host' field
 of the form, Also you need to add service now user name to 'Login' field and password to 'Password' field of the form.
 
 #### sftp_default:
 ```sftp_connection``` If you want to ingest your service now instance data to an SFTP account, you can add the SFTP connection
-details in this Connection entry. Add sftp account name in the `Login` field and sftp account password in the `Password`
+details in `sftp_default` connection entry. Add sftp account name in the `Login` field and sftp account password in the `Password`
 field of the form, nothing else needs to be changed.
 
 #### s3_default:
-```s3_default``` If you want to ingest your service now instance data to Amazon S3 account, you need to have 'access_key_id' 
-and 'secret_key_id' for your s3 storage. Add `access_key_id` to `Login` and `secret_key_id` to `Password` field of the 
+```s3_default``` If you want to ingest your service now instance data to Amazon S3 account, you need to have `access_key_id` 
+and `secret_key_id` for your s3 storage. Add `access_key_id` to `Login` and `secret_key_id` to `Password` field of the 
 `s3_default` connection 
 
 #### dropbox_default:
-`dropbox_default` mini BRS provides you an option to ingest your service now instance data to `Dropbox` account for this
+`dropbox_default` mini BRS provides you an option to ingest your service now instance data to `Dropbox` account, For this
 you need to generate `access_token` for your dropbox account and add that `access_token` to the `Password` field of the
 connection. In order to generate `access_token` for you account please check out the following [link](#)
 

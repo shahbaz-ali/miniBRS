@@ -281,7 +281,7 @@ which database you want to use as airflow meta-database ?
                 host = 'localhost'
             user = str(input("Enter Postgres database username : "))
             password = getpass.getpass()
-            port = str(input("MySQL port (default : 5432) : "))
+            port = str(input("Postgres port (default : 5432) : "))
             if port == '':
                 port = 5432
             database_name = str(input("Enter database name : "))
