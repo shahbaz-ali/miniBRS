@@ -38,6 +38,7 @@ class TestDates():
         assert get_days(get_start_date("1da")) == 1
         assert get_days(get_start_date("2da")) == 2
         assert get_days(get_start_date("3da")) == 3
+        assert get_days(get_start_date("-3da")) == 3
         assert get_days(get_start_date("10da")) == 10
 
         with pytest.raises(BadStartDatePreset):
@@ -47,10 +48,10 @@ class TestDates():
     def test_days_ago(self):
         
         assert isinstance(days_ago(2), datetime)
-        with pytest.raises(ValueError):
+        with pytest.raises(TypeError):
             days_ago("2")
 
-    @pytest.mark.months_ago
+    @pytest.mark.skip
     def test_months_ago(self):
 
         assert isinstance(months_ago(2), int)
