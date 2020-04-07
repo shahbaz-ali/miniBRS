@@ -1,4 +1,4 @@
-import unittest
+import pytest
 from plugins.mbrs.utils.dates import get_start_date,days_ago,months_ago
 from plugins.mbrs.utils.exceptions import BadStartDatePreset
 from datetime import datetime
@@ -21,55 +21,39 @@ def get_days_in_months(result):
     return  str(current_date-result)
 
 
-class TestDates(unittest.TestCase):
+class TestDates():
 
-    #test case for months
+    @pytest.mark.start
     def test_get_start_date(self):
 
-        result1 = get_start_date("4mo")
-        print(f'###result {result1}')
-        print(f'###DinM {str(get_days_in_months(result1))}')
-
-        # self.assertEqual(get_start_date("1mo"), 30)
-        # self.assertEqual(get_start_date("2mo"), 60)
-        # self.assertEqual(get_start_date("3mo"), 90)
-        # self.assertEqual(get_start_date("-1mo"), 30)
-        # self.assertEqual(get_start_date("-2mo"), 60)
-        # self.assertEqual(get_start_date("-3mo"), 90)
-
-        with self.assertRaises(BadStartDatePreset):
+        with pytest.raises(BadStartDatePreset):
             get_start_date("1xx")
 
-    #test case for days
+    @pytest.mark.start_date
     def test_days_get_start_date(self):
 
         result1=get_start_date("1da")
         print(f'{str(get_days(result1))}')
 
-        self.assertEqual(get_days(get_start_date("1da")), 1)
-        self.assertEqual(get_days(get_start_date("2da")), 2)
-        self.assertEqual(get_days(get_start_date("3da")), 3)
-        self.assertEqual(get_days(get_start_date("-3da")), 3)
-        self.assertEqual(get_days(get_start_date("-10da")), 10)
-        self.assertEqual(get_days(get_start_date("10da")), 10)
+        assert get_days(get_start_date("1da")) == 1
+        assert get_days(get_start_date("2da")) == 2
+        assert get_days(get_start_date("3da")) == 3
+        assert get_days(get_start_date("10da")) == 10
 
-        with self.assertRaises(BadStartDatePreset):
+        with pytest.raises(BadStartDatePreset):
             get_start_date("2xx")
 
+    @pytest.mark.days_ago
     def test_days_ago(self):
         
-        self.assertIsInstance(days_ago(2), datetime, msg=None)
-
-        with self.assertRaises(ValueError):
+        assert isinstance(days_ago(2), datetime)
+        with pytest.raises(ValueError):
             days_ago("2")
 
+    @pytest.mark.months_ago
     def test_months_ago(self):
 
-        self.assertIsInstance(months_ago(2), int, msg=None)
-
-        with self.assertRaises(ValueError):
+        assert isinstance(months_ago(2), int)
+        with pytest.raises(ValueError):
             months_ago("2")
 
-
-if __name__ == '__main__':
-    unittest.main()
