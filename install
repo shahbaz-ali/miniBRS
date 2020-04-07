@@ -25,6 +25,7 @@ import configparser
 import time
 import getpass
 import shutil
+import json
 
 AIRFLOW_HOME = None
 AIRFLOW_CONFIG = None
@@ -654,6 +655,85 @@ def create_python_virtual_environment():
         executable='/bin/bash').communicate()
 
 
+def create_airflow_connection_default_servicenow(settings, Connection):
+
+    session = settings.Session()
+
+    if len(session.query(Connection).filter(Connection.conn_id == 'servicenow_default').all()) == 0:
+        connection = Connection(
+            conn_id='servicenow_default',
+            host='https://dev1234.service-now.com',
+            login='admin',
+            password='password'
+        )
+        session.add(connection)
+        session.commit()
+        session.close()
+
+
+def create_airflow_connection_s3_default(settings, Connection):
+    session = settings.Session()
+
+    if len(session.query(Connection).filter(Connection.conn_id == 's3_default').all()) == 0:
+        connection = Connection(
+            conn_id='s3_default',
+            login='<access_key>',
+            password='password',
+            extra='{"region-name":"ap-south-1","bucket-name":"mini-brs"}'
+        )
+
+        session.add(connection)
+        session.commit()
+        session.close()
+
+
+def create_airflow_connection_dropbox_default(settings, Connection):
+    session = settings.Session()
+
+    if len(session.query(Connection).filter(Connection.conn_id == 'dropbox_default').all()) == 0:
+        connection = Connection(
+            conn_id='dropbox_default',
+            login='<access_key>',
+            password='password'
+        )
+
+        session = settings.Session()
+        session.add(connection)
+        session.commit()
+        session.close()
+
+
+def create_configuration_variables(Variable):
+
+    # 'config' variable
+
+    Variable.set(
+        key='config',
+        value=json.dumps({
+            "tables": [],
+            "start_date": "1da",
+            "frequency": "hourly",
+            "threshold": 10000,
+            "export_format": "xml",
+            "storage_type": "sftp",
+            "email": ""
+        }))
+
+    # 'r_config' variable
+
+    Variable.set(
+        key='r_config',
+        value='{}'
+    )
+
+    # 'dag_creation_dates' variable
+
+    Variable.set(
+        key='dag_creation_dates',
+        value='{}'
+    )
+
+
 if __name__ == '__main__':
 
     class Context:
@@ -789,6 +869,7 @@ if __name__ == '__main__':
     install_packages_from_requirement_file(context)
 
     set_airflow_home_as_environment(context)
+    shutil.move(src="{}/{}".format(os.getcwd(), 'dags'), dst="{}/{}".format(os.getcwd(), 'bak_dags'))
     airflow_initdb(context)
     modify_airflow_config(context)
 
@@ -798,7 +879,20 @@ if __name__ == '__main__':
     chown(AIRFLOW_DB, os.environ['SUDO_UID'], os.environ['SUDO_GID'])
     chown_r('{}/logs'.format(os.getcwd()), os.environ['SUDO_USER'])
 
+    os.mkdir("{}/{}".format(os.getcwd(), 'dags'))
     airflow_resetdb(context)
+
+    from airflow.models.variable import Variable
+    from airflow.models.connection import Connection
+    from airflow import settings
+
+    create_airflow_connection_default_servicenow(settings, Connection)
+    create_airflow_connection_dropbox_default(settings, Connection)
+    create_airflow_connection_s3_default(settings, Connection)
+    create_configuration_variables(Variable)
+
+    shutil.rmtree("{}/{}".format(os.getcwd(), 'dags'))
+    shutil.move(dst="{}/{}".format(os.getcwd(), 'dags'), src="{}/{}".format(os.getcwd(), 'bak_dags'))
 
     if not context.is_virtual:
         print("creating service entries for airflow...")
