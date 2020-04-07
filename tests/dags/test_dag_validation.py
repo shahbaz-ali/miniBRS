@@ -57,7 +57,7 @@ class TestDagValidation(unittest.TestCase):
            for dag_id, dag in self.dagbag.dags.items():
                start_date = dag.default_args.get('start_date', "")
                msg = 'Alert - \'start_date\' not set for DAG {id}'.format(id=dag_id)
-               self.assertGreater(len(dag_id),0,msg)
+               self.assertGreater(len(str(start_date)),0,msg)
 
     #OK
     def test_get_existing_dag(self):
