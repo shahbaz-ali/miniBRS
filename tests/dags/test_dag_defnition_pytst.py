@@ -3,7 +3,7 @@
 To test the total number of tasks in the DAG, upstream and downstream dependencies of each task etc.
 '''
 
-import unittest
+import pytest
 
 from airflow.exceptions import AirflowConfigException
 from airflow.models import DagBag
@@ -20,33 +20,42 @@ def is_email_present():
 
         return isPresent
 
-class TestDAGDefnition(unittest.TestCase):
+class TestDAGDefnition():
 
-    def setUp(self):
-        self.dagbag = DagBag(dag_folder=configuration.get_airflow_home()+'/dags/generated')
+    @pytest.fixture
+    def dagbagDags(self):
+        dagbag = DagBag(dag_folder=configuration.get_airflow_home()+'/dags/generated')
+        return dagbag.dags
 
-    # #OK
-    def test_task_count_in_dag(self):
+    @pytest.fixture
+    def dagbag(self):
+        dagbag = DagBag(dag_folder=configuration.get_airflow_home() + '/dags/generated')
+        return dagbag
+
+    #OK Py
+    @pytest.mark.count_tasks
+    def test_task_count_in_dag(self,dagbagDags,dagbag):
         """Check task count of a dag"""
 
-        for dag_id, dag in self.dagbag.dags.items():
+        for dag_id, dag in dagbagDags.items():
 
             #dag_id='incident'
-            dag = self.dagbag.get_dag(dag_id)
+            dag = dagbag.get_dag(dag_id)
             number_of_tasks=len(dag.tasks)
             msg=f'Number of tasks are not same as expected in DAG with id  {dag_id}'
 
             if is_email_present():
                 '''Total number of tasks in a dag will be 8'''
-                self.assertEqual(number_of_tasks,8,msg)
+                assert number_of_tasks == 8, msg
             else:
                 '''Without email operator total tasks will be 7'''
-                self.assertEqual(number_of_tasks, 7, msg)
+                assert number_of_tasks == 7, msg
 
-    #OK
-    def test_is_email_task_present(self):
+    #OK Py
+    @pytest.mark.email
+    def test_is_email_task_present(self,dagbagDags):
         isPresent=False
-        for dag_id, dag in self.dagbag.dags.items():
+        for dag_id, dag in dagbagDags.items():
             try:
                 configuration.get('smtp', 'smtp_user')
                 isPresent = True
@@ -54,10 +63,11 @@ class TestDAGDefnition(unittest.TestCase):
                 isPresent=False
                 msg= f'Email operator is not present in the DAG with id {dag_id}'
 
-            self.assertEquals(isPresent,False,msg)
+            assert isPresent == False ,msg
 
-    #OK
-    def test_contain_tasks(self):
+    #OK Py
+    @pytest.mark.contain
+    def test_contain_tasks(self,dagbagDags,dagbag):
         """Check task contains in a dag"""
 
         expected_tasks = ['start', 'end', 'fetch_record_count', 'count_within_threshold', 'count_exceeds_threshold', \
@@ -65,55 +75,55 @@ class TestDAGDefnition(unittest.TestCase):
 
         if is_email_present():
             expected_tasks.append("notify_submission_failure")
-        for dag_id, dag in self.dagbag.dags.items():
+        for dag_id, dag in dagbagDags.items():
 
            # dag_id='incident'
-            dag = self.dagbag.get_dag(dag_id)
+            dag = dagbag.get_dag(dag_id)
             tasks = dag.tasks
             task_ids = list(map(lambda task: task.task_id, tasks))
             task_ids=sorted(task_ids)
             expected_tasks=sorted(expected_tasks)
             msg=f'Tasks in DAG with id \'{dag_id}\' are not same as expected'
-            self.assertListEqual(task_ids, expected_tasks,msg)
+            assert task_ids == expected_tasks, msg
 
-    #OK
-    def test_dependencies_of_fetch_record_count_task(self):
+    #OK Py
+    @pytest.mark.fetch_dependencies
+    def test_dependencies_of_fetch_record_count_task(self,dagbagDags,dagbag):
         """Check the task dependencies of fetch_record_count in a dag"""
 
-        for dag_id, dag in self.dagbag.dags.items():
+        for dag_id, dag in dagbagDags.items():
 
             #dag_id='incident'
-            dag = self.dagbag.get_dag(dag_id)
+            dag = dagbag.get_dag(dag_id)
             fetch_record_count_task = dag.get_task('fetch_record_count')
 
             upstream_task_ids = list(map(lambda task: task.task_id, fetch_record_count_task.upstream_list))
             expected_upstream_task=['start']
             msg=f'Upstream tasks of fetch_record_count in a DAG with id \'{dag_id}\' are not same as expected'
-            self.assertListEqual(upstream_task_ids, expected_upstream_task,msg)
-
+            assert upstream_task_ids == expected_upstream_task ,msg
 
             downstream_task_ids = list(map(lambda task: task.task_id, fetch_record_count_task.downstream_list))
             expected_downstream_task=['count_is_zero', 'count_within_threshold', 'count_exceeds_threshold']
             downstream_task_ids=sorted(downstream_task_ids)
             expected_downstream_task=sorted(expected_downstream_task)
             msg=f'DownStream tasks of fetch_record_count in a DAG with id \'{dag_id}\' are not same as expected'
-            self.assertListEqual(downstream_task_ids,expected_downstream_task,msg)
+            assert downstream_task_ids == expected_downstream_task, msg
 
-    #OK
-    def test_dependencies_of_send_data_to_submission_task(self):
+    #OK Py
+    @pytest.mark.submission
+    def test_dependencies_of_send_data_to_submission_task(self,dagbagDags,dagbag):
 
         """Check the task dependencies of send_data_to_submission in incident dag"""
-        for dag_id, dag in self.dagbag.dags.items():
+        for dag_id, dag in dagbagDags.items():
 
            # dag_id='incident'
-            dag = self.dagbag.get_dag(dag_id)
+            dag = dagbag.get_dag(dag_id)
             send_data_to_submission_task = dag.get_task('send_data_to_submission')
 
             upstream_task_ids = list(map(lambda task: task.task_id, send_data_to_submission_task.upstream_list))
             expected_upstream_task=['count_within_threshold']
             msg=f'Upstream tasks for task \'send_data_to_submission\' are not same as expected in DAG with id \'{dag_id}\''
-            self.assertListEqual(upstream_task_ids, expected_upstream_task,msg)
-
+            assert  upstream_task_ids == expected_upstream_task ,msg
 
             downstream_task_ids = list(map(lambda task: task.task_id, send_data_to_submission_task.downstream_list))
             expected_downstream_task=['end']
@@ -124,16 +134,17 @@ class TestDAGDefnition(unittest.TestCase):
                 del expected_downstream_task[0]
                 expected_downstream_task.append("notify_submission_failure")
                 expected_downstream_task=sorted(expected_downstream_task)
-            self.assertListEqual(downstream_task_ids,expected_downstream_task)
+            assert downstream_task_ids == expected_downstream_task, msg
 
-    #OK
-    def test_dependencies_of_end_task(self):
+    #OK Py
+    @pytest.mark.end_dependencies
+    def test_dependencies_of_end_task(self,dagbagDags,dagbag):
 
         """Check the task dependencies of end task in incident dag"""
 
-        for dag_id, dag in self.dagbag.dags.items():
+        for dag_id, dag in dagbagDags.items():
             #dag_id='incident'
-            dag = self.dagbag.get_dag(dag_id)
+            dag = dagbag.get_dag(dag_id)
             end_task = dag.get_task('end')
 
             upstream_task_ids = list(map(lambda task: task.task_id, end_task.upstream_list))
@@ -146,18 +157,12 @@ class TestDAGDefnition(unittest.TestCase):
                 del expected_upstream_task[2]
                 expected_upstream_task.append("notify_submission_failure")
 
-            upst,ream_task_ids=sorted(upstream_task_ids)
+            upstream_task_ids=sorted(upstream_task_ids)
             expected_upstream_task=sorted(expected_upstream_task)
             msg = f'Upstream tasks for task \'end\' are not same as expected in DAG with id \'{dag_id}\''
-            self.assertListEqual(upstream_task_ids, expected_upstream_task,msg)
-
+            assert upstream_task_ids == expected_upstream_task ,msg
 
             downstream_task_ids = list(map(lambda task: task.task_id, end_task.downstream_list))
             expected_downstream_task=[]
             msg = f'DownStream tasks for task \'end\' are not same as expected in DAG with id \'{dag_id}\''
-            self.assertListEqual(downstream_task_ids,expected_downstream_task,msg)
-
-
-
-if __name__ == '__main__':
-    unittest.main()
+            assert downstream_task_ids == expected_downstream_task ,msg
