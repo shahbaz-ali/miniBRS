@@ -6,6 +6,7 @@ from datetime import timedelta, datetime
 from plugins.mbrs.utils.exceptions import BadStartDatePreset
 from airflow.utils.dates import cron_presets
 from airflow.utils.timezone import utcnow
+from airflow.utils.log.logging_mixin import LoggingMixin
 import calendar
 cron_presets['@half-hourly'] ='*/30 * * * *'
 
@@ -14,6 +15,12 @@ def get_start_date(start_date):
 
     preset = str(start_date)[-2:]
     value = str(start_date)[:-2]
+    value=int(value)
+
+    if value < 0:
+        value = -value
+        LoggingMixin().log.warn("Start date cannot be negative integer")
+
     if preset == 'mo':
         return days_ago(months_ago(int(value)))
     elif preset == 'da':
@@ -26,6 +33,9 @@ def days_ago(n, hour=0, minute=0, second=0, microsecond=0):
     Get a datetime object representing `n` days ago. By default the time is
     set to midnight.
     """
+    if isinstance(n, str):
+        raise TypeError("Number of days cannot be of type str")
+
     today = utcnow().replace(
         hour=hour,
         minute=minute,
