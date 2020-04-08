@@ -158,7 +158,7 @@ def check_python_version():
         miniBRS uses Airflow version 1.10.9, which requires you to have
         python 3.6 or above, please make sure you have requirements full filled
         for further details checkout the docs section
-        """)
+        """.upper())
         exit(1)
 
 
@@ -244,11 +244,11 @@ which database you want to use as airflow meta-database ?
 (2) MySQL
 (3) Postgres
 
-    """)
+    """.upper())
 
     global META_DB
 
-    d_id = str(input('Enter your option  (default : 1) '))
+    d_id = str(input('Enter your option  (default : 1) '.upper()))
 
     if d_id == '':
         d_id = 1
@@ -262,30 +262,30 @@ which database you want to use as airflow meta-database ?
             pass
         elif int(d_id) == 2:
             META_DB = 'MySQL'
-            host = str(input("Enter database hostname (default : localhost) : "))
+            host = str(input("Enter database hostname (default : localhost) : ".upper()))
             if host == '':
                 host = 'localhost'
-            user = str(input("Enter MySQL database username : "))
+            user = str(input("Enter MySQL database username : ".upper()))
             password = getpass.getpass()
-            port = str(input("MySQL port (default : 3306) : "))
+            port = str(input("MySQL port (default : 3306) : ".upper()))
             if port == '':
                 port = 3306
-            database_name = str(input("Enter database name : "))
+            database_name = str(input("Enter database name : ".upper()))
 
             connection_string = AIRFLOW_CONN_MYSQL_DEFAULT.format(
                 user, quote_plus(password), host,  port, database_name
             )
         elif int(d_id) == 3:
             META_DB = 'Postgres'
-            host = str(input("Enter database hostname (default : localhost) : "))
+            host = str(input("Enter database hostname (default : localhost) : ".upper()))
             if host == '':
                 host = 'localhost'
-            user = str(input("Enter Postgres database username : "))
+            user = str(input("Enter Postgres database username : ".upper()))
             password = getpass.getpass()
-            port = str(input("Postgres port (default : 5432) : "))
+            port = str(input("Postgres port (default : 5432) : ".upper()))
             if port == '':
                 port = 5432
-            database_name = str(input("Enter database name : "))
+            database_name = str(input("Enter database name : ".upper()))
             connection_string = AIRFLOW_CONN_POSTGRES_DEFAULT.format(
                 user, quote_plus(password), host, port, database_name
             )
@@ -313,9 +313,9 @@ If you don't have SMTP details you can skip this step and configure
 later via airflow.cfg file.
 __________________________________________________________________
 
-    """)
+    """.upper())
 
-    agree = str(input("Do you want to use email alerting option (default : yes) y/n ? "))
+    agree = str(input("Do you want to use email alerting option (default : yes) y/n ? ".upper()))
 
     if agree == '':
         agree = 'y'
@@ -531,14 +531,14 @@ ____________________________________________________________________
     """)
 
     try:
-        username = str(input("Enter username (default : admin) "))
+        username = str(input("Enter username (default : admin) ".upper()))
         password = getpass.getpass()
         if username == '':
             username = 'admin'
-        return (username, password,)
+        return username, password
     except Exception as error:
         print('ERROR', error)
-        return (-1, -1,)
+        return -1, -1,
 
 
 def chown(path, uid, gid):
@@ -788,13 +788,13 @@ if __name__ == '__main__':
     print("_____________________________________________________________________________________")
 
     print('')
-    print('If you are a developer, than you should go for virtual environment installation')
-    print('by choosing virtual installation, mini-brs wont be installed as a service on this')
-    print('machine. You would need to start and stop the service yourself, after activating ')
-    print('the virtual environment !')
+    print('If you are a developer, than you should go for virtual environment installation'.upper())
+    print('by choosing virtual installation, mini-brs wont be installed as a service on this'.upper())
+    print('machine. You would need to start and stop the service yourself, after activating '.upper())
+    print('the virtual environment !'.upper())
     print('')
 
-    v = str(input("Do you want python virtual environment to be created ? (default : No) y/n: "))
+    v = str(input("Do you want python virtual environment to be created ? (default : No) y/n: ".upper()))
 
     context = Context()
 
