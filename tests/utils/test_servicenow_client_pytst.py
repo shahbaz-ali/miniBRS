@@ -2,13 +2,9 @@ import pytest
 from plugins.mbrs.utils.exceptions import InvalidArguments
 from plugins.mbrs.utils.servicenow_client import ServiceNowClient
 from plugins.mbrs.utils.servicenow_client import ServiceNowException
+from tests.ignores_warning import IgnoreWarnings
 
-
-import sys
-if not sys.warnoptions:
-    import os, warnings
-    warnings.simplefilter("ignore") # Change the filter in this process
-    os.environ["PYTHONWARNINGS"] = "ignore" # Also affect subprocesses
+IgnoreWarnings.ignore()
 
 
 class TestServiceClientNow():

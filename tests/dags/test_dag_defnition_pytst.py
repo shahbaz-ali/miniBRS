@@ -8,22 +8,9 @@ import pytest
 from airflow.exceptions import AirflowConfigException
 from airflow.models import DagBag
 from airflow import configuration
+from tests.ignores_warning import IgnoreWarnings
 
-import sys
-if not sys.warnoptions:
-    import os, warnings
-    warnings.simplefilter("ignore") # Change the filter in this process
-    os.environ["PYTHONWARNINGS"] = "default" # Also affect subprocesses
-
-import warnings
-
-def fxn():
-    warnings.warn("deprecated", DeprecationWarning)
-
-with warnings.catch_warnings():
-    warnings.simplefilter("ignore")
-    fxn()
-
+IgnoreWarnings.ignore()
 
 def is_email_present():
         isPresent=False
