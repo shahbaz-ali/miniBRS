@@ -87,10 +87,10 @@ MESSAGE_TEMPLATE = """
     parallelism = 16
     dag_concurrency = 8
     max_active_runs_per_dag = 3    
-    
+    secure_mode = True
     [webserver]
     
-    worker = 1
+    worker = 2
     authenticate = True
     auth_backend = airflow.contrib.auth.backends.password_auth
     
@@ -262,12 +262,12 @@ which database you want to use as airflow meta-database ?
             pass
         elif int(d_id) == 2:
             META_DB = 'MySQL'
-            host = str(input("Enter database hostname (default : localhost) : ".upper()))
+            host = str(input("Enter DATABASE HOST NAME (DEFAULT : localhost) : "))
             if host == '':
                 host = 'localhost'
             user = str(input("Enter MySQL database username : ".upper()))
             password = getpass.getpass()
-            port = str(input("MySQL port (default : 3306) : ".upper()))
+            port = str(input("MySQL PORT (DEFAULT : 3306) : "))
             if port == '':
                 port = 3306
             database_name = str(input("Enter database name : ".upper()))
@@ -277,7 +277,7 @@ which database you want to use as airflow meta-database ?
             )
         elif int(d_id) == 3:
             META_DB = 'Postgres'
-            host = str(input("Enter database hostname (default : localhost) : ".upper()))
+            host = str(input("ENTER DATABASE HOST NAME (DEFAULT : localhost) : "))
             if host == '':
                 host = 'localhost'
             user = str(input("Enter Postgres database username : ".upper()))
@@ -321,21 +321,21 @@ __________________________________________________________________
         agree = 'y'
 
     if agree.lower() == 'y' or agree.lower() == 'yes':
-        smtp_host = str(input('smtp host (default : smtp.gmail.com) '))
+        smtp_host = str(input('SMTP HOST (DEFAULT : smtp.gmail.com) '))
         if smtp_host == '':
             smtp_host = 'smtp.gmail.com'
 
-        smtp_starttls = str(input('enable TLS (default : True) '))
+        smtp_starttls = str(input('ENABLE TLS (DEFAULT : True) True/False ?'))
         if smtp_starttls == '':
             smtp_starttls = 'True'
-        smtp_ssl = str(input('enable SSL (default : False) '))
+        smtp_ssl = str(input('ENABLE SSL (DEFAULT : False) True/False ? '))
         if smtp_ssl == '':
             smtp_ssl = 'False'
-        smtp_user = str(input('email address :'))
+        smtp_user = str(input('EMAIL ADDRESS :'))
         if smtp_user == '':
             print('smtp_user cannot be left empty !')
         smtp_password = getpass.getpass()
-        smtp_port = str(input('port (default : 587) '))
+        smtp_port = str(input('PORT (DEFAULT : 587) '))
         if smtp_port == '':
             smtp_port = '587'
 
@@ -531,7 +531,7 @@ ____________________________________________________________________
     """)
 
     try:
-        username = str(input("Enter username (default : admin) ".upper()))
+        username = str(input("ENTER USERNAME (DEFAULT : admin) "))
         password = getpass.getpass()
         if username == '':
             username = 'admin'
