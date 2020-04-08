@@ -25,6 +25,7 @@ import configparser
 import time
 import getpass
 import shutil
+import json
 
 AIRFLOW_HOME = None
 AIRFLOW_CONFIG = None
@@ -86,10 +87,10 @@ MESSAGE_TEMPLATE = """
     parallelism = 16
     dag_concurrency = 8
     max_active_runs_per_dag = 3    
-    
+    secure_mode = True
     [webserver]
     
-    worker = 1
+    worker = 2
     authenticate = True
     auth_backend = airflow.contrib.auth.backends.password_auth
     
@@ -157,7 +158,7 @@ def check_python_version():
         miniBRS uses Airflow version 1.10.9, which requires you to have
         python 3.6 or above, please make sure you have requirements full filled
         for further details checkout the docs section
-        """)
+        """.upper())
         exit(1)
 
 
@@ -243,11 +244,11 @@ which database you want to use as airflow meta-database ?
 (2) MySQL
 (3) Postgres
 
-    """)
+    """.upper())
 
     global META_DB
 
-    d_id = str(input('Enter your option  (default : 1) '))
+    d_id = str(input('Enter your option  (default : 1) '.upper()))
 
     if d_id == '':
         d_id = 1
@@ -261,30 +262,30 @@ which database you want to use as airflow meta-database ?
             pass
         elif int(d_id) == 2:
             META_DB = 'MySQL'
-            host = str(input("Enter database hostname (default : localhost) : "))
+            host = str(input("Enter DATABASE HOST NAME (DEFAULT : localhost) : "))
             if host == '':
                 host = 'localhost'
-            user = str(input("Enter MySQL database username : "))
+            user = str(input("Enter MySQL database username : ".upper()))
             password = getpass.getpass()
-            port = str(input("MySQL port (default : 3306) : "))
+            port = str(input("MySQL PORT (DEFAULT : 3306) : "))
             if port == '':
                 port = 3306
-            database_name = str(input("Enter database name : "))
+            database_name = str(input("Enter database name : ".upper()))
 
             connection_string = AIRFLOW_CONN_MYSQL_DEFAULT.format(
                 user, quote_plus(password), host,  port, database_name
             )
         elif int(d_id) == 3:
             META_DB = 'Postgres'
-            host = str(input("Enter database hostname (default : localhost) : "))
+            host = str(input("ENTER DATABASE HOST NAME (DEFAULT : localhost) : "))
             if host == '':
                 host = 'localhost'
-            user = str(input("Enter Postgres database username : "))
+            user = str(input("Enter Postgres database username : ".upper()))
             password = getpass.getpass()
-            port = str(input("Postgres port (default : 5432) : "))
+            port = str(input("Postgres port (default : 5432) : ".upper()))
             if port == '':
                 port = 5432
-            database_name = str(input("Enter database name : "))
+            database_name = str(input("Enter database name : ".upper()))
             connection_string = AIRFLOW_CONN_POSTGRES_DEFAULT.format(
                 user, quote_plus(password), host, port, database_name
             )
@@ -312,29 +313,29 @@ If you don't have SMTP details you can skip this step and configure
 later via airflow.cfg file.
 __________________________________________________________________
 
-    """)
+    """.upper())
 
-    agree = str(input("Do you want to use email alerting option (default : yes) y/n ? "))
+    agree = str(input("Do you want to use email alerting option (default : yes) y/n ? ".upper()))
 
     if agree == '':
         agree = 'y'
 
     if agree.lower() == 'y' or agree.lower() == 'yes':
-        smtp_host = str(input('smtp host (default : smtp.gmail.com) '))
+        smtp_host = str(input('SMTP HOST (DEFAULT : smtp.gmail.com) '))
         if smtp_host == '':
             smtp_host = 'smtp.gmail.com'
 
-        smtp_starttls = str(input('enable TLS (default : True) '))
+        smtp_starttls = str(input('ENABLE TLS (DEFAULT : True) True/False ?'))
         if smtp_starttls == '':
             smtp_starttls = 'True'
-        smtp_ssl = str(input('enable SSL (default : False) '))
+        smtp_ssl = str(input('ENABLE SSL (DEFAULT : False) True/False ? '))
         if smtp_ssl == '':
             smtp_ssl = 'False'
-        smtp_user = str(input('email address :'))
+        smtp_user = str(input('EMAIL ADDRESS :'))
         if smtp_user == '':
             print('smtp_user cannot be left empty !')
         smtp_password = getpass.getpass()
-        smtp_port = str(input('port (default : 587) '))
+        smtp_port = str(input('PORT (DEFAULT : 587) '))
         if smtp_port == '':
             smtp_port = '587'
 
@@ -530,14 +531,14 @@ ____________________________________________________________________
     """)
 
     try:
-        username = str(input("Enter username (default : admin) "))
+        username = str(input("ENTER USERNAME (DEFAULT : admin) "))
         password = getpass.getpass()
         if username == '':
             username = 'admin'
-        return (username, password,)
+        return username, password
     except Exception as error:
         print('ERROR', error)
-        return (-1, -1,)
+        return -1, -1,
 
 
 def chown(path, uid, gid):
@@ -654,6 +655,85 @@ def create_python_virtual_environment():
         executable='/bin/bash').communicate()
 
 
+def create_airflow_connection_default_servicenow(settings, Connection):
+
+    session = settings.Session()
+
+    if len(session.query(Connection).filter(Connection.conn_id == 'servicenow_default').all()) == 0:
+        connection = Connection(
+            conn_id='servicenow_default',
+            host='https://dev1234.service-now.com',
+            login='admin',
+            password='password'
+        )
+        session.add(connection)
+        session.commit()
+        session.close()
+
+
+def create_airflow_connection_s3_default(settings, Connection):
+    session = settings.Session()
+
+    if len(session.query(Connection).filter(Connection.conn_id == 's3_default').all()) == 0:
+        connection = Connection(
+            conn_id='s3_default',
+            login='<access_key>',
+            password='password',
+            extra='{"region-name":"ap-south-1","bucket-name":"mini-brs"}'
+        )
+
+        session.add(connection)
+        session.commit()
+        session.close()
+
+
+def create_airflow_connection_dropbox_default(settings, Connection):
+    session = settings.Session()
+
+    if len(session.query(Connection).filter(Connection.conn_id == 'dropbox_default').all()) == 0:
+        connection = Connection(
+            conn_id='dropbox_default',
+            login='<access_key>',
+            password='password'
+        )
+
+        session = settings.Session()
+        session.add(connection)
+        session.commit()
+        session.close()
+
+
+def create_configuration_variables(Variable):
+
+    # 'config' variable
+
+    Variable.set(
+        key='config',
+        value=json.dumps({
+            "tables": [],
+            "start_date": "1da",
+            "frequency": "hourly",
+            "threshold": 10000,
+            "export_format": "xml",
+            "storage_type": "sftp",
+            "email": ""
+        }))
+
+    # 'r_config' variable
+
+    Variable.set(
+        key='r_config',
+        value='{}'
+    )
+
+    # 'dag_creation_dates' variable
+
+    Variable.set(
+        key='dag_creation_dates',
+        value='{}'
+    )
+
+
 if __name__ == '__main__':
 
     class Context:
@@ -708,13 +788,13 @@ if __name__ == '__main__':
     print("_____________________________________________________________________________________")
 
     print('')
-    print('If you are a developer, than you should go for virtual environment installation')
-    print('by choosing virtual installation, mini-brs wont be installed as a service on this')
-    print('machine. You would need to start and stop the service yourself, after activating ')
-    print('the virtual environment !')
+    print('If you are a developer, than you should go for virtual environment installation'.upper())
+    print('by choosing virtual installation, mini-brs wont be installed as a service on this'.upper())
+    print('machine. You would need to start and stop the service yourself, after activating '.upper())
+    print('the virtual environment !'.upper())
     print('')
 
-    v = str(input("Do you want python virtual environment to be created ? (default : No) y/n: "))
+    v = str(input("Do you want python virtual environment to be created ? (default : No) y/n: ".upper()))
 
     context = Context()
 
@@ -789,6 +869,7 @@ if __name__ == '__main__':
     install_packages_from_requirement_file(context)
 
     set_airflow_home_as_environment(context)
+    shutil.move(src="{}/{}".format(os.getcwd(), 'dags'), dst="{}/{}".format(os.getcwd(), 'bak_dags'))
     airflow_initdb(context)
     modify_airflow_config(context)
 
@@ -798,7 +879,20 @@ if __name__ == '__main__':
     chown(AIRFLOW_DB, os.environ['SUDO_UID'], os.environ['SUDO_GID'])
     chown_r('{}/logs'.format(os.getcwd()), os.environ['SUDO_USER'])
 
+    os.mkdir("{}/{}".format(os.getcwd(), 'dags'))
     airflow_resetdb(context)
+
+    from airflow.models.variable import Variable
+    from airflow.models.connection import Connection
+    from airflow import settings
+
+    create_airflow_connection_default_servicenow(settings, Connection)
+    create_airflow_connection_dropbox_default(settings, Connection)
+    create_airflow_connection_s3_default(settings, Connection)
+    create_configuration_variables(Variable)
+
+    shutil.rmtree("{}/{}".format(os.getcwd(), 'dags'))
+    shutil.move(dst="{}/{}".format(os.getcwd(), 'dags'), src="{}/{}".format(os.getcwd(), 'bak_dags'))
 
     if not context.is_virtual:
         print("creating service entries for airflow...")

@@ -23,7 +23,6 @@ from plugins.mbrs.utils.exceptions import InvalidStorageTypeException
 from plugins.mbrs.utils.exceptions import DropboxConnectionNotFoundException
 from plugins.mbrs.modals.recovery_modals import Dags
 
-from sqlalchemy import not_
 from jinja2 import Template
 import json
 import os
@@ -43,6 +42,7 @@ s3_default = None
 dropbox_default = None
 new_dags = None
 
+
 def create_airflow_connection_default_servicenow():
 
     session = settings.Session()
@@ -54,7 +54,6 @@ def create_airflow_connection_default_servicenow():
             login='admin',
             password='password'
         )
-
 
         session.add(connection)
         session.commit()
@@ -224,11 +223,13 @@ def ini():
 
         bootstrap = True
 
-        create_airflow_connection_default_servicenow()
+        # To Be Removed in subsequent release
 
-        create_configuration_variables()
-        create_airflow_connection_s3_default()
-        create_airflow_connection_dropbox_default()
+        # create_airflow_connection_default_servicenow()
+        #
+        # create_configuration_variables()
+        # create_airflow_connection_s3_default()
+        # create_airflow_connection_dropbox_default()
 
     elif _invoking_function_ == "wrapper":
 
