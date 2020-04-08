@@ -13,7 +13,7 @@ from airflow import configuration
 def is_email_present():
         isPresent=False
         try:
-            configuration.get('smtp', 'smtp_user')
+            configuration.conf.get('smtp', 'smtp_user')
             isPresent = True
         except AirflowConfigException as e:
             isPresent=False
@@ -48,13 +48,13 @@ class TestDAGDefnition(unittest.TestCase):
         isPresent=False
         for dag_id, dag in self.dagbag.dags.items():
             try:
-                configuration.get('smtp', 'smtp_user')
+                configuration.conf.get('smtp', 'smtp_user')
                 isPresent = True
             except AirflowConfigException as e:
                 isPresent=False
                 msg= f'Email operator is not present in the DAG with id {dag_id}'
 
-            self.assertEquals(isPresent,False,msg)
+            self.assertEqual(isPresent,False,msg)
 
     #OK
     def test_contain_tasks(self):

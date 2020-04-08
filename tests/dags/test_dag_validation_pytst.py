@@ -3,8 +3,16 @@
  To test the validity of the DAG, checking typos and cyclicity.
 '''
 import pytest
+from _pytest.warning_types import PytestUnknownMarkWarning
 from airflow.models import DagBag
 from airflow import configuration
+
+import sys
+if not sys.warnoptions:
+    import os, warnings
+    warnings.simplefilter("ignore") # Change the filter in this process
+    os.environ["PYTHONWARNINGS"] = "ignore" # Also affect subprocesses
+
 
 class TestDagValidation():
 

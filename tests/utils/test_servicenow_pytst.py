@@ -4,6 +4,12 @@ from plugins.mbrs.utils.servicenow import fetch_servicenow_record_count,on_failu
 from plugins.mbrs.utils.exceptions import ConfigVariableNotFoundException, ServiceNowConnectionNotFoundException, \
      InvalidArguments
 
+import sys
+if not sys.warnoptions:
+    import os, warnings
+    warnings.simplefilter("ignore") # Change the filter in this process
+    os.environ["PYTHONWARNINGS"] = "ignore" # Also affect subprocesses
+
 
 class TestServiceNow():
 

@@ -9,11 +9,26 @@ from airflow.exceptions import AirflowConfigException
 from airflow.models import DagBag
 from airflow import configuration
 
+import sys
+if not sys.warnoptions:
+    import os, warnings
+    warnings.simplefilter("ignore") # Change the filter in this process
+    os.environ["PYTHONWARNINGS"] = "default" # Also affect subprocesses
+
+import warnings
+
+def fxn():
+    warnings.warn("deprecated", DeprecationWarning)
+
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore")
+    fxn()
+
 
 def is_email_present():
         isPresent=False
         try:
-            configuration.get('smtp', 'smtp_user')
+            configuration.conf.get('smtp', 'smtp_user')
             isPresent = True
         except AirflowConfigException as e:
             isPresent=False
@@ -57,7 +72,7 @@ class TestDAGDefnition():
         isPresent=False
         for dag_id, dag in dagbagDags.items():
             try:
-                configuration.get('smtp', 'smtp_user')
+                configuration.conf.get('smtp', 'smtp_user')
                 isPresent = True
             except AirflowConfigException as e:
                 isPresent=False

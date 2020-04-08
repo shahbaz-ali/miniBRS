@@ -3,6 +3,14 @@ from plugins.mbrs.utils.exceptions import InvalidArguments
 from plugins.mbrs.utils.servicenow_client import ServiceNowClient
 from plugins.mbrs.utils.servicenow_client import ServiceNowException
 
+
+import sys
+if not sys.warnoptions:
+    import os, warnings
+    warnings.simplefilter("ignore") # Change the filter in this process
+    os.environ["PYTHONWARNINGS"] = "ignore" # Also affect subprocesses
+
+
 class TestServiceClientNow():
     sample_args = {
         'host': 'https://dev70631.service-now.com',
