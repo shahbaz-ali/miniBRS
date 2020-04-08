@@ -103,5 +103,5 @@ class TestDagValidation():
         dagbag = DagBag(dag_folder=configuration.get_airflow_home() + '/dags/generated', include_examples=False)
         size=dagbag.size()
         print(f"SIZE {size}")
-        assert size == 1
+        assert size == 0
 

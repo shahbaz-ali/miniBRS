@@ -91,7 +91,7 @@ class TestDagValidation(unittest.TestCase):
         self.dagbag = DagBag(dag_folder=configuration.get_airflow_home() + '/dags/generated', include_examples=False)
         size=self.dagbag.size()
         print(f"SIZE {size}")
-        self.assertEqual(size, 1)
+        self.assertEqual(size, 0)
 
 
 if __name__ == "__main__":
