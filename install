@@ -882,6 +882,9 @@ if __name__ == '__main__':
     os.mkdir("{}/{}".format(os.getcwd(), 'dags'))
     airflow_resetdb(context)
 
+    if context.is_virtual:
+        sys.path.append("{}/.env/lib/python3.6/site-packages/".format(os.getcwd()))
+
     from airflow.models.variable import Variable
     from airflow.models.connection import Connection
     from airflow import settings
