@@ -54,7 +54,7 @@ that email address. In order to know how to generate `app password` for your ema
 1. clone the repository using git
 
 ```bash
-~$ git clone https://gitlab.com/shahbaz.ali/mini-brs.git
+~$ git clone https://github.com/Cloud-Innovation-Partners/miniBRS.git
 ```
 
 2. execute ```install``` script inside the project folder using ```sudo``` command
