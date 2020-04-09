@@ -5,6 +5,9 @@
 import pytest
 from airflow.models import DagBag
 from airflow import configuration
+from tests.ignores_warning import IgnoreWarnings
+
+IgnoreWarnings.ignore()
 
 class TestDagValidation():
 

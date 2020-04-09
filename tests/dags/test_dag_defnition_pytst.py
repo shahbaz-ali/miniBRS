@@ -8,12 +8,14 @@ import pytest
 from airflow.exceptions import AirflowConfigException
 from airflow.models import DagBag
 from airflow import configuration
+from tests.ignores_warning import IgnoreWarnings
 
+IgnoreWarnings.ignore()
 
 def is_email_present():
         isPresent=False
         try:
-            configuration.get('smtp', 'smtp_user')
+            configuration.conf.get('smtp', 'smtp_user')
             isPresent = True
         except AirflowConfigException as e:
             isPresent=False
@@ -57,7 +59,7 @@ class TestDAGDefnition():
         isPresent=False
         for dag_id, dag in dagbagDags.items():
             try:
-                configuration.get('smtp', 'smtp_user')
+                configuration.conf.get('smtp', 'smtp_user')
                 isPresent = True
             except AirflowConfigException as e:
                 isPresent=False

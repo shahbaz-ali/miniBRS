@@ -2,6 +2,10 @@ import pytest
 from plugins.mbrs.utils.exceptions import InvalidArguments
 from plugins.mbrs.utils.servicenow_client import ServiceNowClient
 from plugins.mbrs.utils.servicenow_client import ServiceNowException
+from tests.ignores_warning import IgnoreWarnings
+
+IgnoreWarnings.ignore()
+
 
 class TestServiceClientNow():
     sample_args = {

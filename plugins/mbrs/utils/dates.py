@@ -19,7 +19,7 @@ def get_start_date(start_date):
 
     if value < 0:
         value = -value
-        LoggingMixin().log.warn("Start date cannot be negative integer")
+        LoggingMixin().log.warning("Start date cannot be negative integer")
 
     if preset == 'mo':
         return days_ago(months_ago(int(value)))
