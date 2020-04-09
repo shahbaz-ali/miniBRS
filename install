@@ -734,7 +734,74 @@ def create_configuration_variables(Variable):
     )
 
 
+def check_integrity():
+    files = [
+        'dags',
+        'dags/templates/__init__.py',
+        'dags/templates/main.py.jinja2',
+        'dags/templates/recovery_template.py.jinja2',
+        'dags/generated',
+        'dags/__init__.py',
+        'dags/dag_cleanup.py',
+        'dags/dag_generator.py',
+        'plugins',
+        'plugins/mbrs',
+        'plugins/mbrs/blueprints',
+        'plugins/mbrs/blueprints/__init__.py',
+        'plugins/mbrs/blueprints/recovery_blueprint.py',
+        'plugins/mbrs/hooks',
+        'plugins/mbrs/hooks/__init__.py',
+        'plugins/mbrs/hooks/amazon_s3_hook.py',
+        'plugins/mbrs/hooks/servicenow_hook.py',
+        'plugins/mbrs/menu_links',
+        'plugins/mbrs/menu_links/__init__.py',
+        'plugins/mbrs/modals',
+        'plugins/mbrs/modals/__init__.py',
+        'plugins/mbrs/modals/recovery_modals.py',
+        'plugins/mbrs/operators',
+        'plugins/mbrs/operators/common',
+        'plugins/mbrs/operators/common/__init__.py',
+        'plugins/mbrs/operators/common/email_operator.py',
+        'plugins/mbrs/operators/common/servicenow_to_generic_transfer_operator.py',
+        'plugins/mbrs/operators/__init__.py',
+        'plugins/mbrs/operators/servicenow_to_dropbox_transfer_operator.py',
+        'plugins/mbrs/operators/servicenow_to_s3_transfer_operator.py',
+        'plugins/mbrs/operators/servicenow_to_sftp_transfer_operator.py',
+        'plugins/mbrs/templates',
+        'plugins/mbrs/templates/recovery_dashboard.html',
+        'plugins/mbrs/utils',
+        'plugins/mbrs/utils/__init__.py',
+        'plugins/mbrs/utils/dates.py',
+        'plugins/mbrs/utils/exceptions.py',
+        'plugins/mbrs/utils/generator.py',
+        'plugins/mbrs/utils/servicenow.py',
+        'plugins/mbrs/utils/servicenow_client.py',
+        'plugins/mbrs/utils/state.py',
+        'plugins/mbrs/views',
+        'plugins/mbrs/views/__init__.py',
+        'plugins/mbrs/views/recovery_dashboard_view.py',
+        'plugins/mbrs/__init__.py',
+        'plugins/__init__.py',
+        'requirement.txt'
+    ]
+
+    missing_files = []
+    for item in files:
+        if os.path.exists("{}/{}".format(os.getcwd(), item)):
+            pass
+        else:
+            missing_files.append(str(item))
+    if len(missing_files) != 0:
+        print("mini BRS integrity check FAILED !")
+        print("missing files :", str(missing_files))
+        exit(1)
+    else:
+        print("mini BRS integrity check PASSED !")
+
+
 if __name__ == '__main__':
+
+    check_integrity()
 
     class Context:
 
@@ -870,32 +937,36 @@ if __name__ == '__main__':
 
     set_airflow_home_as_environment(context)
     shutil.move(src="{}/{}".format(os.getcwd(), 'dags'), dst="{}/{}".format(os.getcwd(), 'bak_dags'))
-    airflow_initdb(context)
-    modify_airflow_config(context)
 
-    # Change owner
-    chown(AIRFLOW_CONFIG, os.environ['SUDO_UID'], os.environ['SUDO_GID'])
-    chown(AIRFLOW_CONFIG_TEST, os.environ['SUDO_UID'], os.environ['SUDO_GID'])
-    chown(AIRFLOW_DB, os.environ['SUDO_UID'], os.environ['SUDO_GID'])
-    chown_r('{}/logs'.format(os.getcwd()), os.environ['SUDO_USER'])
+    try:
+        airflow_initdb(context)
+        modify_airflow_config(context)
 
-    os.mkdir("{}/{}".format(os.getcwd(), 'dags'))
-    airflow_resetdb(context)
+        # Change owner
+        chown(AIRFLOW_CONFIG, os.environ['SUDO_UID'], os.environ['SUDO_GID'])
+        chown(AIRFLOW_CONFIG_TEST, os.environ['SUDO_UID'], os.environ['SUDO_GID'])
+        chown(AIRFLOW_DB, os.environ['SUDO_UID'], os.environ['SUDO_GID'])
+        chown_r('{}/logs'.format(os.getcwd()), os.environ['SUDO_USER'])
 
-    if context.is_virtual:
-        sys.path.append("{}/.env/lib/python3.6/site-packages/".format(os.getcwd()))
+        os.mkdir("{}/{}".format(os.getcwd(), 'dags'))
+        airflow_resetdb(context)
 
-    from airflow.models.variable import Variable
-    from airflow.models.connection import Connection
-    from airflow import settings
+        if context.is_virtual:
+            sys.path.append("{}/.env/lib/python3.6/site-packages/".format(os.getcwd()))
 
-    create_airflow_connection_default_servicenow(settings, Connection)
-    create_airflow_connection_dropbox_default(settings, Connection)
-    create_airflow_connection_s3_default(settings, Connection)
-    create_configuration_variables(Variable)
+        from airflow.models.variable import Variable
+        from airflow.models.connection import Connection
+        from airflow import settings
 
-    shutil.rmtree("{}/{}".format(os.getcwd(), 'dags'))
-    shutil.move(dst="{}/{}".format(os.getcwd(), 'dags'), src="{}/{}".format(os.getcwd(), 'bak_dags'))
+        create_airflow_connection_default_servicenow(settings, Connection)
+        create_airflow_connection_dropbox_default(settings, Connection)
+        create_airflow_connection_s3_default(settings, Connection)
+        create_configuration_variables(Variable)
+    finally:
+        if os.path.exists("{}/{}".format(os.getcwd(), 'dags')):
+            shutil.rmtree("{}/{}".format(os.getcwd(), 'dags'))
+        if os.path.exists("{}/{}".format(os.getcwd(), 'bak_dags')):
+            shutil.move(dst="{}/{}".format(os.getcwd(), 'dags'), src="{}/{}".format(os.getcwd(), 'bak_dags'))
 
     if not context.is_virtual:
         print("creating service entries for airflow...")
