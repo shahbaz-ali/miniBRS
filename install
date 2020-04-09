@@ -655,61 +655,46 @@ def create_python_virtual_environment():
         executable='/bin/bash').communicate()
 
 
-def create_airflow_connection_default_servicenow(settings, Connection):
-
-    session = settings.Session()
-
-    if len(session.query(Connection).filter(Connection.conn_id == 'servicenow_default').all()) == 0:
-        connection = Connection(
-            conn_id='servicenow_default',
-            host='https://dev1234.service-now.com',
-            login='admin',
-            password='password'
-        )
-        session.add(connection)
-        session.commit()
-        session.close()
+def create_airflow_connection_default_servicenow():
+    env = os.environ
+    env['AIRFLOW_HOME'] = os.getcwd()
+    subprocess.Popen(["{} connections -a --conn_id servicenow_default --conn_type None "
+                      "--conn_host https://dev1234.service-now.com --conn_login admin --conn_password None"
+                     .format(context.get_airflow_executable())], cwd=os.getcwd(), env=env,
+                     universal_newlines=True, stdout=subprocess.PIPE, shell=True,
+                     executable='/bin/bash').communicate()
 
 
-def create_airflow_connection_s3_default(settings, Connection):
-    session = settings.Session()
-
-    if len(session.query(Connection).filter(Connection.conn_id == 's3_default').all()) == 0:
-        connection = Connection(
-            conn_id='s3_default',
-            login='<access_key>',
-            password='password',
-            extra='{"region-name":"ap-south-1","bucket-name":"mini-brs"}'
-        )
-
-        session.add(connection)
-        session.commit()
-        session.close()
+def create_airflow_connection_s3_default():
+    env = os.environ
+    env['AIRFLOW_HOME'] = os.getcwd()
+    subprocess.Popen(["{} connections -a --conn_id s3_default --conn_type None --conn_login access_key_id "
+                      "--conn_password None --conn_extra {}"
+                     .format(context.get_airflow_executable(),
+                             json.dumps({"region-name": "ap-south-1", "bucket-name": "mini-brs"}))],
+                     cwd=os.getcwd(), env=env,
+                     universal_newlines=True, stdout=subprocess.PIPE, shell=True,
+                     executable='/bin/bash').communicate()
 
 
-def create_airflow_connection_dropbox_default(settings, Connection):
-    session = settings.Session()
-
-    if len(session.query(Connection).filter(Connection.conn_id == 'dropbox_default').all()) == 0:
-        connection = Connection(
-            conn_id='dropbox_default',
-            login='<access_key>',
-            password='password'
-        )
-
-        session = settings.Session()
-        session.add(connection)
-        session.commit()
-        session.close()
+def create_airflow_connection_dropbox_default():
+    env = os.environ
+    env['AIRFLOW_HOME'] = os.getcwd()
+    subprocess.Popen(["{} connections -a --conn_id dropbox_default --conn_type None --conn_login None "
+                      "--conn_password None"
+                     .format(context.get_airflow_executable())], cwd=os.getcwd(), env=env,
+                     universal_newlines=True, stdout=subprocess.PIPE, shell=True,
+                     executable='/bin/bash').communicate()
 
 
-def create_configuration_variables(Variable):
+def create_configuration_variables():
 
     # 'config' variable
 
-    Variable.set(
-        key='config',
-        value=json.dumps({
+    env = os.environ
+    env['AIRFLOW_HOME'] = os.getcwd()
+    subprocess.Popen(["{} variables -s config {}".format(context.get_airflow_executable(), json.dumps(
+        {
             "tables": [],
             "start_date": "1da",
             "frequency": "hourly",
@@ -717,21 +702,23 @@ def create_configuration_variables(Variable):
             "export_format": "xml",
             "storage_type": "sftp",
             "email": ""
-        }))
+        }))], cwd=os.getcwd(), env=env,
+                     universal_newlines=True, stdout=subprocess.PIPE, shell=True,
+                     executable='/bin/bash').communicate()
 
     # 'r_config' variable
 
-    Variable.set(
-        key='r_config',
-        value='{}'
-    )
+    subprocess.Popen(["{} variables -s r_config {}".format(context.get_airflow_executable(), '{}')],
+                     cwd=os.getcwd(), env=env,
+                     universal_newlines=True, stdout=subprocess.PIPE, shell=True,
+                     executable='/bin/bash').communicate()
 
     # 'dag_creation_dates' variable
 
-    Variable.set(
-        key='dag_creation_dates',
-        value='{}'
-    )
+    subprocess.Popen(["{} variables -s dag_creation_dates {}".format(context.get_airflow_executable(), '{}')],
+                     cwd=os.getcwd(), env=env,
+                     universal_newlines=True, stdout=subprocess.PIPE, shell=True,
+                     executable='/bin/bash').communicate()
 
 
 def check_integrity():
@@ -951,17 +938,10 @@ if __name__ == '__main__':
         os.mkdir("{}/{}".format(os.getcwd(), 'dags'))
         airflow_resetdb(context)
 
-        if context.is_virtual:
-            sys.path.append("{}/.env/lib/python3.6/site-packages/".format(os.getcwd()))
-
-        from airflow.models.variable import Variable
-        from airflow.models.connection import Connection
-        from airflow import settings
-
-        create_airflow_connection_default_servicenow(settings, Connection)
-        create_airflow_connection_dropbox_default(settings, Connection)
-        create_airflow_connection_s3_default(settings, Connection)
-        create_configuration_variables(Variable)
+        create_airflow_connection_default_servicenow()
+        create_airflow_connection_dropbox_default()
+        create_airflow_connection_s3_default()
+        create_configuration_variables()
     finally:
         if os.path.exists("{}/{}".format(os.getcwd(), 'dags')):
             shutil.rmtree("{}/{}".format(os.getcwd(), 'dags'))
