@@ -669,7 +669,7 @@ def create_airflow_connection_s3_default():
     env = os.environ
     env['AIRFLOW_HOME'] = os.getcwd()
     subprocess.Popen(["{} connections -a --conn_id s3_default --conn_type None --conn_login access_key_id "
-                      "--conn_password None --conn_extra {}"
+                      "--conn_password None --conn_extra '{}'"
                      .format(context.get_airflow_executable(),
                              json.dumps({"region-name": "ap-south-1", "bucket-name": "mini-brs"}))],
                      cwd=os.getcwd(), env=env,
@@ -693,7 +693,7 @@ def create_configuration_variables():
 
     env = os.environ
     env['AIRFLOW_HOME'] = os.getcwd()
-    subprocess.Popen(["{} variables -s config {}".format(context.get_airflow_executable(), json.dumps(
+    subprocess.Popen(["{} variables -s config '{}'".format(context.get_airflow_executable(), json.dumps(
         {
             "tables": [],
             "start_date": "1da",
