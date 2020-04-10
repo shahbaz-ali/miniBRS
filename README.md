@@ -233,3 +233,19 @@ are the part of current release and in future various other operators and hooks 
 ## Who Maintains mini-BRS
 mini-BRS is the work of the open source team of Cloud Innovation Partners (CIP), and CIP team is 
 responsible for reviewing and merging PRs as well as steering conversation around new feature requests. 
+
+
+## License
+Copyright (c) 2020 [Cloud Innovation Partners](http://cloudinp.com)
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
