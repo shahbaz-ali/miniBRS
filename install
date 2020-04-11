@@ -182,7 +182,7 @@ def upgrade_pip():
 
 
 def install_packages_from_requirement_file(context):
-    (out, err) = subprocess.Popen(["sed /pkg-resources==0.0.0/d requirement.txt > output.txt"],
+    (out, err) = subprocess.Popen(["sed /pkg-resources==0.0.0/d requirements.txt > output.txt"],
                                   universal_newlines=True, stdout=subprocess.PIPE, shell=True).communicate()
 
     print('removed pkg-resources==0.0.0 as requirement')
@@ -769,7 +769,7 @@ def check_integrity():
         'plugins/mbrs/views/recovery_dashboard_view.py',
         'plugins/mbrs/__init__.py',
         'plugins/__init__.py',
-        'requirement.txt'
+        'requirements.txt'
     ]
 
     missing_files = []
