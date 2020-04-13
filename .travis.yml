@@ -3,7 +3,9 @@ python:
   - "3.6"      # current default Python on Travis CI
 # command to install dependencies
 install:
+  - sed -i '/pkg-resources==0.0.0/d' requirements.txt
   - pip install -r requirements.txt
+  - airflow initdb
 # command to run tests
 script:
   - pytest
