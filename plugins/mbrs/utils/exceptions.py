@@ -188,3 +188,21 @@ class InvalidArguments(AirflowException):
             return "InvalidArguments, {}".format(self.message)
         else:
             return "InvalidArguments has been raised"
+
+class MYSQLConnectionNotFoundException(AirflowException):
+    '''
+    @:exception: SFTPConnectionNotFoundException, raised if no connection
+    with connection id 'sftp_default' is found in the meta-database
+    '''
+
+    def __init__(self, *args):
+        if args:
+            self.message = args[0]
+        else:
+            self.message = "No connection with id 'mysql' defined"
+
+    def __str__(self):
+        if self.message:
+            return "MYSQLConnectionNotFoundException, {}".format(self.message)
+        else:
+            return "MYSQLConnectionNotFoundException has been raised"

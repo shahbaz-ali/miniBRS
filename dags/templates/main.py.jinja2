@@ -22,6 +22,16 @@ from plugins.mbrs.operators.servicenow_to_sftp_transfer_operator import ServiceN
 from plugins.mbrs.operators.servicenow_to_s3_transfer_operator import ServiceNowToS3TransferOperator
 {% elif data.storage_type == 'dropbox' %}
 from plugins.mbrs.operators.servicenow_to_dropbox_transfer_operator import ServiceNowToDropboxTransferOperator
+{% elif data.storage_type == 'mysql' %}
+from plugins.mbrs.operators.servicenow_to_mysql_transfer_operator import ServiceNowToMYSQLTransferOperator
+import psutil
+import os
+from airflow import LoggingMixin
+def memory_usage_psutil():
+    # return the memory usage in MB
+    process = psutil.Process(os.getpid())
+    mem = process.memory_info()[0] / float(2 ** 20)  # 2 raises power 20
+    return mem
 {% endif %}
 
 {%block dag%}
@@ -42,6 +52,11 @@ dag_id=str({{ "'"~data.dag_id|string~"'" }}).replace(' ','_').replace('.','_Dot_
             'execution_date' : {% raw %}'{{ execution_date }}'{% endraw %}
         }
 )
+
+{% if data.storage_type == 'mysql' %}
+LoggingMixin().log.warning('Memory (Before): {}Mb'.format(memory_usage_psutil()))
+{% endif %}
+
 start = DummyOperator(task_id='start',dag=dag)
 end = DummyOperator(task_id='end',dag=dag,trigger_rule='none_failed')
 record_count = BranchPythonOperator(task_id='fetch_record_count',python_callable=fetch_servicenow_record_count,provide_context=True,dag=dag,op_kwargs={'table_name': table_name,'execution_date':dag.params.get('execution_date')})
@@ -59,6 +74,8 @@ submission = ServiceNowToSFTPTransferOperator(task_id='send_data_to_submission',
 submission = ServiceNowToS3TransferOperator(task_id='send_data_to_submission',dag=dag,snow_id ='servicenow_default',config = 'config',storage_conn_id = 's3_default',table = table_name,execution_date=dag.params.get('execution_date'))
 {% elif data.storage_type == 'dropbox' %}
 submission = ServiceNowToDropboxTransferOperator(task_id='send_data_to_submission',dag=dag,snow_id ='servicenow_default',config = 'config',storage_conn_id = 'dropbox_default',table = table_name,execution_date=dag.params.get('execution_date'))
+{% elif data.storage_type == 'mysql' %}
+submission = ServiceNowToMYSQLTransferOperator(task_id='send_data_to_submission',dag=dag,snow_id ='servicenow_default',config = 'config',storage_conn_id = 'mysql_default',table = table_name,execution_date=dag.params.get('execution_date'))
 {% endif %}
 
 {% endblock %}
@@ -76,6 +93,9 @@ end <<[count_exceeds_threshold,count_equals_zero,submission]
 end<<notify_submission_failure
 {%endif%}
 
+{% if data.storage_type == 'mysql' %}
+LoggingMixin().log.warning('Memory (After): {}Mb'.format(memory_usage_psutil()))
+{% endif %}
 
 {% block unpause%}
 session = airflow.settings.Session()
