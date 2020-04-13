@@ -1,5 +1,7 @@
 # CIP - mini-BRS
 
+[![Build Status](https://travis-ci.org/Cloud-Innovation-Partners/miniBRS.svg?branch=v1-0-dev)](https://travis-ci.org/Cloud-Innovation-Partners/miniBRS) ![license](https://img.shields.io/badge/license-Apache2-blue) ![Github docs](https://img.shields.io/badge/docs-passing-green) ![python](https://img.shields.io/badge/python-3.6-blue)
+
 mini-BRS is a tool that provides ServiceNow data backup facility via programmatic workflows scheduled and monitored
 by Apache Airflow. It uses Airflow in back end as workflow management tool.
 
