@@ -13,12 +13,12 @@ class TestDagValidation():
 
     @pytest.fixture
     def dagbagDags(self):
-        dagbag = DagBag(dag_folder=configuration.get_airflow_home() + '/dags/generated')
+        dagbag = DagBag(dag_folder=configuration.get_airflow_home() + '/dags/generated', include_examples= False)
         return dagbag.dags
 
     @pytest.fixture
     def dagbag(self):
-        dagbag = DagBag(dag_folder=configuration.get_airflow_home() + '/dags/generated')
+        dagbag = DagBag(dag_folder=configuration.get_airflow_home() + '/dags/generated', include_examples= False)
         return dagbag
 
     #OK Py
