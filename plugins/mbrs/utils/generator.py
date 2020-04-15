@@ -386,8 +386,7 @@ def is_storage_defined():
     global sftp_default
     global s3_default
     global dropbox_default
-    global mysql
-
+    global mysql_default
     try:
 
         storage_type = str(config['storage_type']).lower()
@@ -420,7 +419,7 @@ def is_storage_defined():
 
         elif storage_type == 'mysql':
             try:
-               mysql = BaseHook.get_connection('mysql_default')
+               mysql_default = BaseHook.get_connection('mysql_default')
 
             except AirflowException:
 

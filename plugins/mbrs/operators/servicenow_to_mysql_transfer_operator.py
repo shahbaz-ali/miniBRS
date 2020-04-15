@@ -8,6 +8,7 @@ from plugins.mbrs.operators.common.servicenow_to_generic_transfer_operator impor
 from plugins.mbrs.utils.exceptions import MYSQLConnectionNotFoundException
 import xml.etree.ElementTree as ET
 import MySQLdb as ms
+from airflow import LoggingMixin
 
 count=0
 
@@ -25,16 +26,14 @@ class ServiceNowToMYSQLTransferOperator(ServiceNowToGenericTransferOperator):
             raise MYSQLConnectionNotFoundException()
 
         l_file_path = self.file_name
-        print(f'FILE PATH {l_file_path}')
+        LoggingMixin().log.warning(f'FILE PATH {l_file_path}')
         file_name = l_file_path[l_file_path.rfind('/') + 1:]
-        table_name = file_name.split('_')[0]
+        table_name = file_name.split('_')[0]  #gets the table name from file name
 
-        ##parse the file
+        #parse the file
         n_objects = ParseFile.get_n_objects(l_file_path)
 
-        # for n in n_objects:
-        #     print(n)
-        ##store the data in the database
+        #store the data in the database
         cols = list(next(n_objects).keys())
         storage = Storage(self.login, self.password, self.host, self.database_name, table_name)
         storage.create_database()
@@ -62,14 +61,13 @@ class ParseFile():
                 # check for markers
                 if tag in markers:
                     link = elem.find('link')
-                    #                print(f'LINK TEXT {link.text}')
 
                     # check link for none -- sometimes the link will be None
                     if link == None:
                         incident[tag] = '\'Not present\''
                     else:
-                        # sometimes the text will be none
                         link_text = link.text
+                        # sometimes the text will be none
                         incident[tag] = "'" + link_text + "'" if link_text != None else "\'empty\'"
 
                 elif tag != 'link' and tag != 'value':
@@ -121,13 +119,5 @@ class Storage():
             cursor.execute(sql)
             conn.commit()
             count += 1
-            print(f'Inserting Record {count} ')
+            LoggingMixin().log.warning(f'Inserting Record {count} ')
         conn.close()
-
-    # placeholders= ', '.join('?' * len(dictt))
-    # sql = "insert into incident ({}) values ({})".format(cols,values)
-    #  print(sql)
-    #  incident =next(incident_object)
-    #  cursor.execute(sql,list(incident.values()))
-    #  conn.commit()
-    #  conn.close()
