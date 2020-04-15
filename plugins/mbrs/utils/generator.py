@@ -1,6 +1,6 @@
 #   mbrs
 #   Copyright (c)Cloud Innovation Partners 2020.
-#   Author : Shahbaz Ali
+#   http://www.cloudinp.com
 
 import inspect
 from airflow import configuration
@@ -12,7 +12,7 @@ from airflow import settings
 from airflow import models
 from plugins.mbrs.utils.dates import get_start_date
 from airflow.exceptions import AirflowConfigException
-from plugins.mbrs.utils.exceptions import AirflowException
+from plugins.mbrs.utils.exceptions import AirflowException, MYSQLConnectionNotFoundException
 from plugins.mbrs.utils.exceptions import ServiceNowConnectionNotFoundException
 from plugins.mbrs.utils.exceptions import S3ConnectionNotFoundException
 from plugins.mbrs.utils.exceptions import ConfigVariableNotFoundException
@@ -40,6 +40,7 @@ storage_type = None
 sftp_default = None
 s3_default = None
 dropbox_default = None
+mysql_default=None
 new_dags = None
 
 
@@ -385,7 +386,7 @@ def is_storage_defined():
     global sftp_default
     global s3_default
     global dropbox_default
-
+    global mysql_default
     try:
 
         storage_type = str(config['storage_type']).lower()
@@ -415,6 +416,15 @@ def is_storage_defined():
             except AirflowException:
 
                 raise DropboxConnectionNotFoundException()
+
+        elif storage_type == 'mysql':
+            try:
+               mysql_default = BaseHook.get_connection('mysql_default')
+
+            except AirflowException:
+
+                raise MYSQLConnectionNotFoundException()
+
         else:
 
             raise InvalidStorageTypeException()
