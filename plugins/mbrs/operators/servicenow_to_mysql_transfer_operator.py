@@ -1,6 +1,6 @@
 #   mbrs
 #   Copyright (c)Cloud Innovation Partners 2020.
-#   Author : Muhammad Akeel
+#   http://www.cloudinp.com
 
 from airflow import AirflowException
 from airflow.hooks.base_hook import BaseHook
@@ -36,7 +36,7 @@ class ServiceNowToMYSQLTransferOperator(ServiceNowToGenericTransferOperator):
         #store the data in the database
         cols = list(next(n_objects).keys())
         storage = Storage(self.login, self.password, self.host, self.database_name, table_name)
-        storage.create_database()
+        #storage.create_database()
         storage.create_table(cols)
         storage.insert_data(n_objects)
 
