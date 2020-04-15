@@ -1,6 +1,6 @@
 #   mbrs
 #   Copyright (c)Cloud Innovation Partners 2020.
-#   Author : Shahbaz Ali
+#   http://www.cloudinp.com
 
 import inspect
 from airflow import configuration
@@ -40,7 +40,7 @@ storage_type = None
 sftp_default = None
 s3_default = None
 dropbox_default = None
-mysql=None
+mysql_default=None
 new_dags = None
 
 
