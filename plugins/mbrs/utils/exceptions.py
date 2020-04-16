@@ -1,6 +1,6 @@
 #   mbrs
 #   Copyright (c)Cloud Innovation Partners 2020.
-#   Author : Shahbaz Ali
+#   http://www.cloudinp.com
 
 from airflow.exceptions import AirflowException
 
@@ -194,7 +194,7 @@ class PostgreSQLConnectionNotFoundException(AirflowException):
     @:exception: PostgreSQLConnectionNotFoundException, raised if no connection
     with connection id 'postgres_default' is found in the meta-database
     '''
-
+    
     def __init__(self, *args):
         if args:
             self.message = args[0]
@@ -206,3 +206,22 @@ class PostgreSQLConnectionNotFoundException(AirflowException):
             return "PostgreSQLConnectionNotFoundException, {}".format(self.message)
         else:
             return "PostgreSQLConnectionNotFoundException has been raised"
+          
+          
+class MYSQLConnectionNotFoundException(AirflowException):
+    '''
+    @:exception: MYSQLConnectionNotFoundException, raised if no connection
+    with connection id 'mysql_default' is found in the meta-database
+    '''
+
+    def __init__(self, *args):
+        if args:
+            self.message = args[0]
+        else:
+            self.message = "No connection with id 'mysql_default' defined"
+
+    def __str__(self):
+        if self.message:
+            return "MYSQLConnectionNotFoundException, {}".format(self.message)
+        else:
+            return "MYSQLConnectionNotFoundException has been raised"
