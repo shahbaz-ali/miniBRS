@@ -24,7 +24,7 @@ from airflow.utils.state import State
 from airflow.utils.db import provide_session
 from airflow.utils.log.logging_mixin import LoggingMixin
 from airflow.models.variable import Variable
-from sqlalchemy import func
+from sqlalchemy import func, and_, not_
 from plugins.mbrs.modals.recovery_modals import FailedDagRun, Reason
 
 airflow.load_login()
@@ -96,6 +96,10 @@ def reason_f(view, context, model, name):
 
 
 class RecoveryDashboard(ModelView):
+    """
+    ModelView class for FailedDAGs section
+    used to show the list of failed dag_executions
+    """
 
     can_edit = False
     can_create = False
@@ -104,7 +108,7 @@ class RecoveryDashboard(ModelView):
     edit_template = 'airflow/model_edit.html'
     create_template = 'airflow/model_create.html'
     column_display_actions = True
-    page_size = 10
+    page_size = 50
     verbose_name_plural = "Failed DAG Runs"
     column_default_sort = ('execution_date', True)
     form_choices = {
@@ -148,7 +152,7 @@ class RecoveryDashboard(ModelView):
         """
         Flask Admin `action` method
         Purpose : used to trigger the selected Failed DAG
-        :param ids:
+        :param ids: id's selected by user to re-run
         :param session:
         :return:
         """
@@ -195,8 +199,8 @@ class RecoveryDashboard(ModelView):
     @staticmethod
     def create_r_config(ids, session):
         """
-        This method is used to create and populate `r_config` variable  
-        :param ids:
+        This method is used to create and populate `r_config` variable
+        :param ids: id's selected by user to re-run
         :param session:
         :return:
         """
@@ -235,20 +239,30 @@ class RecoveryDashboard(ModelView):
 
     def get_query(self):
         """
-            Default filters for model
-            """
+        Default filters for model
+        """
 
         return super(RecoveryDashboard, self).get_query()\
-            .filter(FailedDagRun.get_state(FailedDagRun) == 'failed')
+            .filter(and_(FailedDagRun.get_state(FailedDagRun) == 'failed',
+                         FailedDagRun.dag_id != 'dag_cleanup',
+                         not_(FailedDagRun.dag_id.like("r_%"))))
 
     def get_count_query(self):
 
-        self.session.query(func.count('*'))\
+        return self.session.query(func.count('*'))\
             .select_from(FailedDagRun)\
-            .filter(FailedDagRun.get_state(FailedDagRun) == 'failed')
+            .filter(and_(FailedDagRun.get_state(FailedDagRun) == 'failed',
+                         FailedDagRun.dag_id != 'dag_cleanup',
+                         not_(FailedDagRun.dag_id.like("r_%"))))
 
 
 class TaskInstanceFailureVariable(ModelView):
+
+    """
+    ModelView class for `view_details` link in FailedDAGs
+    used to show the reason behind the failure of the DAG
+    """
+
     can_edit = False
     can_create = False
     list_template = 'airflow/model_list.html'
@@ -262,7 +276,8 @@ class TaskInstanceFailureVariable(ModelView):
     column_labels = {
         'val': 'Value'
     }
-
+    column_sortable_list = ()
+    
     def is_visible(self):
         return False
 
@@ -274,3 +289,6 @@ class TaskInstanceFailureVariable(ModelView):
     def get_query(self):
         return super(TaskInstanceFailureVariable, self).get_query()\
             .filter(Reason.key == str(self.param_id))
+
+    def get_count_query(self):
+        return super().get_count_query().filter(Reason.key == str(self.param_id))
