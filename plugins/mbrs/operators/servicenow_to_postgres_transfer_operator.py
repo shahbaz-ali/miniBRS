@@ -13,8 +13,6 @@ from airflow import LoggingMixin
 
 from plugins.mbrs.utils.exceptions import PostgreSQLConnectionNotFoundException
 
-count=0
-
 class ServiceNowToPostgresqlTransferOperator(ServiceNowToGenericTransferOperator):
 
     def _upload(self, context):
@@ -103,7 +101,7 @@ class Storage():
 
     def insert_data(self, n_objects):
         count=0
-        conn = pg.connect(host='localhost', port=5432, user='postgres', password='postgres', database='ServiceNow')
+        conn = pg.connect(host=self.host, port=5432, user=self.login, password=self.password, database=self.database_name)
         cursor = conn.cursor()
 
         dictt = next(n_objects)
