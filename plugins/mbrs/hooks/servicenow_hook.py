@@ -1,6 +1,6 @@
-#  CloudBRS
-#  Copyright (c) SMnow 2019.
-#  Author : SA
+#  mbrs
+#  Copyright (c)Cloud Innovation Partners 2020.
+#  http://www.cloudinp.com
 
 from airflow.hooks.base_hook import BaseHook
 from airflow.exceptions import AirflowException

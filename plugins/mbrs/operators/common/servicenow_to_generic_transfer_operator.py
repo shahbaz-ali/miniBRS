@@ -1,6 +1,6 @@
 #   mbrs
 #   Copyright (c)Cloud Innovation Partners 2020.
-#   Author : MAK
+#   http://www.cloudinp.com
 
 from airflow.operators.bash_operator import BaseOperator
 from airflow.utils.decorators import apply_defaults
