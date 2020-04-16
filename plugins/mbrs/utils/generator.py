@@ -12,6 +12,7 @@ from airflow import settings
 from airflow import models
 from plugins.mbrs.utils.dates import get_start_date
 from airflow.exceptions import AirflowConfigException
+from plugins.mbrs.utils.exceptions import AirflowException, PostgreSQLConnectionNotFoundException
 from plugins.mbrs.utils.exceptions import AirflowException, MYSQLConnectionNotFoundException
 from plugins.mbrs.utils.exceptions import ServiceNowConnectionNotFoundException
 from plugins.mbrs.utils.exceptions import S3ConnectionNotFoundException
@@ -386,6 +387,7 @@ def is_storage_defined():
     global sftp_default
     global s3_default
     global dropbox_default
+    global postgres_default
     global mysql_default
     try:
 
@@ -417,6 +419,15 @@ def is_storage_defined():
 
                 raise DropboxConnectionNotFoundException()
 
+        elif storage_type == 'postgres':
+
+            try:
+                 postgres_default= BaseHook.get_connection('postgres_default')
+
+            except AirflowException:
+
+                raise PostgreSQLConnectionNotFoundException()
+                
         elif storage_type == 'mysql':
             try:
                mysql_default = BaseHook.get_connection('mysql_default')

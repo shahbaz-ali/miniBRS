@@ -22,9 +22,12 @@ from plugins.mbrs.operators.servicenow_to_sftp_transfer_operator import ServiceN
 from plugins.mbrs.operators.servicenow_to_s3_transfer_operator import ServiceNowToS3TransferOperator
 {% elif data.storage_type == 'dropbox' %}
 from plugins.mbrs.operators.servicenow_to_dropbox_transfer_operator import ServiceNowToDropboxTransferOperator
+{% elif data.storage_type == 'postgres' %}
+from plugins.mbrs.operators.servicenow_to_postgres_transfer_operator import ServiceNowToPostgresqlTransferOperator
 {% elif data.storage_type == 'mysql' %}
 from plugins.mbrs.operators.servicenow_to_mysql_transfer_operator import ServiceNowToMYSQLTransferOperator
 {% endif %}
+
 
 {%block dag%}
 table_name = {{"'"~data.dag_id~"'"}}
@@ -63,6 +66,8 @@ submission = ServiceNowToSFTPTransferOperator(task_id='send_data_to_submission',
 submission = ServiceNowToS3TransferOperator(task_id='send_data_to_submission',dag=dag,snow_id ='servicenow_default',config = 'config',storage_conn_id = 's3_default',table = table_name,execution_date=dag.params.get('execution_date'))
 {% elif data.storage_type == 'dropbox' %}
 submission = ServiceNowToDropboxTransferOperator(task_id='send_data_to_submission',dag=dag,snow_id ='servicenow_default',config = 'config',storage_conn_id = 'dropbox_default',table = table_name,execution_date=dag.params.get('execution_date'))
+{% elif data.storage_type == 'postgres' %}
+submission = ServiceNowToPostgresqlTransferOperator(task_id='send_data_to_submission',dag=dag,snow_id ='servicenow_default',config = 'config',storage_conn_id = 'postgres_default',table = table_name,execution_date=dag.params.get('execution_date'))
 {% elif data.storage_type == 'mysql' %}
 submission = ServiceNowToMYSQLTransferOperator(task_id='send_data_to_submission',dag=dag,snow_id ='servicenow_default',config = 'config',storage_conn_id = 'mysql_default',table = table_name,execution_date=dag.params.get('execution_date'))
 {% endif %}
