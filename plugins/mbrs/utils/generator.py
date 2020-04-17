@@ -2,36 +2,36 @@
 #   Copyright (c)Cloud Innovation Partners 2020.
 #   http://www.cloudinp.com
 
+"""
+This module is a Helper module used by dag_generator to create
+user DAGs dynamically using `config` variable from the Airflow
+meta-database. It also helps in post installation setps such as
+creation of `rest` connection for the application use.
+"""
+
 import inspect
+import json
+import os
+import socket
+import requests
+from jinja2 import Template
+from sqlalchemy.exc import IntegrityError
 from airflow import configuration
 from airflow.utils.log.logging_mixin import LoggingMixin
 from airflow.models.connection import Connection
 from airflow.models.variable import Variable
 from airflow.hooks.base_hook import BaseHook
-from airflow import settings
-from airflow import models
-from plugins.mbrs.utils.dates import get_start_date
+from airflow import settings, models
 from airflow.exceptions import AirflowConfigException
-from plugins.mbrs.utils.exceptions import AirflowException, PostgreSQLConnectionNotFoundException
-from plugins.mbrs.utils.exceptions import AirflowException, MYSQLConnectionNotFoundException
-from plugins.mbrs.utils.exceptions import ServiceNowConnectionNotFoundException
-from plugins.mbrs.utils.exceptions import S3ConnectionNotFoundException
-from plugins.mbrs.utils.exceptions import ConfigVariableNotFoundException
-from plugins.mbrs.utils.exceptions import AirflowAPICredentialsNotFoundException
-from plugins.mbrs.utils.exceptions import SFTPConnectionNotFoundException
-from plugins.mbrs.utils.exceptions import StorageTypeNotFoundException
-from plugins.mbrs.utils.exceptions import InvalidStorageTypeException
-from plugins.mbrs.utils.exceptions import DropboxConnectionNotFoundException
 from plugins.mbrs.modals.recovery_modals import Dags
-
-from jinja2 import Template
-import json
-import os
-import requests
-import socket
+from plugins.mbrs.utils.dates import get_start_date
+from plugins.mbrs.utils.exceptions import PostgreSQLConnectionNotFoundException, \
+    AirflowException, MYSQLConnectionNotFoundException, ServiceNowConnectionNotFoundException, \
+    S3ConnectionNotFoundException, ConfigVariableNotFoundException, \
+    AirflowAPICredentialsNotFoundException, SFTPConnectionNotFoundException, \
+    StorageTypeNotFoundException, InvalidStorageTypeException, DropboxConnectionNotFoundException
 
 bootstrap = False
-
 servicenow_default = None
 rest = None
 config = None
@@ -41,12 +41,15 @@ storage_type = None
 sftp_default = None
 s3_default = None
 dropbox_default = None
-mysql_default=None
+mysql_default = None
 new_dags = None
 
 
 def create_airflow_connection_default_servicenow():
-
+    """
+    creates `servicenow_default` connection with default parameters
+    :return: None
+    """
     session = settings.Session()
 
     if len(session.query(Connection).filter(Connection.conn_id == 'servicenow_default').all()) == 0:
@@ -64,6 +67,10 @@ def create_airflow_connection_default_servicenow():
 
 
 def create_airflow_connection_s3_default():
+    """
+    creates `s3_default` connection with default parameters
+    :return: None
+    """
     session = settings.Session()
 
     if len(session.query(Connection).filter(Connection.conn_id == 's3_default').all()) == 0:
@@ -81,6 +88,10 @@ def create_airflow_connection_s3_default():
 
 
 def create_airflow_connection_dropbox_default():
+    """
+    creates `drop_default` connection with default parameters
+    :return: None
+    """
     session = settings.Session()
 
     if len(session.query(Connection).filter(Connection.conn_id == 'dropbox_default').all()) == 0:
@@ -98,10 +109,12 @@ def create_airflow_connection_dropbox_default():
 
 
 def create_airflow_rest_connection():
-
+    """
+    creates `rest` connection using airflow.cfg
+    :return:
+    """
     from airflow.contrib.auth.backends.password_auth import PasswordUser
     import base64
-    import os
 
     session = settings.Session()
     exists = session.query(models.User).filter(models.User.username == 'application').scalar()
@@ -139,9 +152,7 @@ def create_airflow_rest_connection():
         config_parser = configuration.AirflowConfigParser()
 
         config_parser.read(
-            configuration.get_airflow_config(
-                        configuration.get_airflow_home()
-                    )
+            configuration.get_airflow_config(configuration.get_airflow_home())
         )
 
         u = config_parser.get(
@@ -182,6 +193,10 @@ def create_airflow_rest_connection():
 
 
 def create_configuration_variables():
+    """
+    creates default variables for miniBRS usage
+    :return:
+    """
 
     # 'config' variable
 
@@ -225,14 +240,6 @@ def ini():
 
         bootstrap = True
 
-        # To Be Removed in subsequent release
-
-        # create_airflow_connection_default_servicenow()
-        #
-        # create_configuration_variables()
-        # create_airflow_connection_s3_default()
-        # create_airflow_connection_dropbox_default()
-
     elif _invoking_function_ == "wrapper":
 
         LoggingMixin().log.info('mini-BRS running...')
@@ -246,6 +253,10 @@ def ini():
 
 
 def create_dags():
+    """
+    This function generates user DAGs using a `config` variable
+    :return:
+    """
 
     global dag_creation_dates
     global new_dags
@@ -291,13 +302,21 @@ def create_dags():
                               + '/dags/templates/recovery_template.py.jinja2') as file_:
                         template = Template(file_.read())
                         output = template.render(
-                            data={'dag_id': table, 'frequency': config.get('frequency'), 'storage_type': storage_type,
-                                  'execution_date': execution_date})
-                    with open(configuration.get_airflow_home() + '/dags/generated/r_dag_' + '{}_{}'.format(
-                            table, execution_date).replace(' ', '_') + '.py', 'w') as f:
+                            data={
+                                'dag_id': table,
+                                'frequency': config.get('frequency'),
+                                'storage_type': storage_type,
+                                'execution_date': execution_date})
+                    with open(
+                            '{}/dags/generated/r_dag_{}_{}'.format(
+                                configuration.get_airflow_home(),
+                                table,
+                                execution_date
+                            ).replace(' ', '_') + '.py', 'w') as f:
+
                         f.write(output)
                         e = '{}'.format(execution_date).replace(' ', 'T')
-                        new_dags.append('r_dag_' + '{}_{}'.format(table, e).replace(' ', '_') + '.py')
+                        new_dags.append('r_dag_{}_{}'.format(table, e).replace(' ', '_') + '.py')
 
         md_dag_ids = settings.Session.query(Dags.dag_id, Dags.fileloc).all()
 
@@ -325,19 +344,23 @@ def create_dags():
 
                 except Exception as e:
                     LoggingMixin().log.error(str(e))
-
-        Variable.set(key='dag_creation_dates', value=json.dumps(dag_creation_dates))
+        try:
+            Variable.set(key='dag_creation_dates', value=json.dumps(dag_creation_dates))
+        except IntegrityError:
+            msg = "psycopg2.errors.UniqueViolation duplicate key value violates unique constraint"
+            LoggingMixin().log.warning(msg)
 
     except AirflowException:
 
         raise ConfigVariableNotFoundException()
 
 
-def remove_dags():
-    pass
-
-
 def is_servicenow_default_connection_available():
+    """
+    checks existence of `servicenow_default` connection
+    :raises ServiceNowConnectionNotFoundException
+    :return:
+    """
 
     global servicenow_default
 
@@ -349,6 +372,11 @@ def is_servicenow_default_connection_available():
 
 
 def is_rest_connection_available():
+    """
+    checks existence of `rest` connection
+    :raises AirflowAPICredentialsNotFoundException
+    :return:
+    """
 
     global rest
 
@@ -360,6 +388,11 @@ def is_rest_connection_available():
 
 
 def is_config_variable_set():
+    """
+    checks existence of `config` variable
+    :raises ConfigVariableNotFoundException
+    :return:
+    """
 
     global config
 
@@ -371,6 +404,11 @@ def is_config_variable_set():
 
 
 def is_recovery_variable_set():
+    """
+    checks existence of `r_config` variable
+    :raises ConfigVariableNotFoundException
+    :return:
+    """
 
     global r_config
 
@@ -382,6 +420,10 @@ def is_recovery_variable_set():
 
 
 def is_storage_defined():
+    """
+    checks whether `storage_type` attribute in `config` variable has a value
+    :raises StorageTypeNotFoundException
+    """
 
     global storage_type
     global sftp_default
@@ -422,15 +464,17 @@ def is_storage_defined():
         elif storage_type == 'postgres':
 
             try:
-                 postgres_default= BaseHook.get_connection('postgres_default')
+
+                postgres_default = BaseHook.get_connection('postgres_default')
 
             except AirflowException:
 
                 raise PostgreSQLConnectionNotFoundException()
-                
+
         elif storage_type == 'mysql':
             try:
-               mysql_default = BaseHook.get_connection('mysql_default')
+
+                mysql_default = BaseHook.get_connection('mysql_default')
 
             except AirflowException:
 
@@ -446,6 +490,10 @@ def is_storage_defined():
 
 
 def is_email_notification_required():
+    """
+    checks whether email_notification is required or not
+    :return:
+    """
 
     try:
         configuration.get(
