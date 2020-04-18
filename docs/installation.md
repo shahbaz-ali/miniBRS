@@ -2,6 +2,97 @@
 
 Installation of airflow is simple, you can find installation details for airflow on the official website [airflow.apache.org](https://airflow.apache.org/docs/stable/start.html) here we shall describe the installation steps for getting ready your development environment specifically for mini-BRS, later we shall describe the process of installation of airflow for mini-BRS on servers.
 
+
+## Requirements
+
+mini-BRS is tested with:
+
+### Master version
+
+* Python versions: 3.6.9
+* Postgres DB: 10.12
+* MySQL DB: 8.0
+* Sqlite - latest stable (it is used mainly for development purpose)
+
+mini-BRS is tested on
+
+* OS Ubuntu 18.04 - minimum 1 GiB memory & 8 GiB storage.
+
+## Things to keep handy !
+
+mini-BRS has an installer script associated with it that helps you in getting right things installed on your system. 
+We encourage use of installer for installing mini-BRS. The installer is interactive as it requires user information to get things configured rightly. Please make sure you have following information in hand, so that you don't 
+get stuck during installation process.
+* Do you want to install mini-BRS as a service on your server or you just require it to be started manually ?
+* mini-BRS requires database for its functioning, for this purpose you need to keep the, database *host ip*,
+*username*, *password*, *port*, *database name* in hand.
+* If you want to have email alerts, make sure you have SMTP server details like *smtp_host*, *smtp_port*, *email address* and *password* in handy. If you want to use Gmail, Outlook or any other email provider make sure you generate `app password` for that email address. In order to know how to generate `app password` for your email address, refer
+[create and use app passwords](https://support.google.com/accounts/answer/185833?hl=en)  
+
+## Getting started
+
+**Installation**
+
+1. clone the repository using git
+
+```bash
+~$ git clone https://github.com/Cloud-Innovation-Partners/miniBRS.git
+```
+
+2. execute ```install``` script inside the project folder using ```sudo``` command
+
+```bash
+~$ sudo ./install
+```
+
+Installation script will take care of your needs, it will start downloading the dependencies and requirements for the
+project. During installation you will need to provide various information such as,
+
+1. Installer will prompt you for type of installation to you need, you can either install mini-BRS as a ubuntu service or you can let the installer create a python virtual environment for you.
+
+2. Next installer will ask you for the type of database to be used as a meta-database for Airflow, mini-BRS is tested
+for SQLite, MySQL and Postgres. You can choose the type of database and provide the specific database credentials during 
+installation.
+
+3. mini-BRS provide failure alerts option via email, you can provide the SMTP server to be used for sending failure notifications, incase, workflows fail. You can choose to skip this step, If you don't want email alerts.
+
+4. You will be prompted to create your Airflow UI login credentials, by default username is ```admin``` you can keep the default username and add a password to it.
+
+Once installation is over, if you have chosen to install mini-BRS as service than after installation you will have two
+system services installed one for ```airflow-webserver``` and other for ```airflow-scheduler``` active and running on
+your machine. You can check the status of the service by
+
+```bash
+~$ sudo service airflow-websever status
+``` 
+
+
+```bash
+~$ sudo service airflow-scheduler status
+``` 
+
+If you have installed mini-BRS as a python virtual environment then you will be having a folder named ```.env``` created
+in ```mini-brs``` folder. This folder is the python virtual environment and you can use following command to activate it
+
+>make sure your current working directory is ```mini-brs``` 
+
+```bash
+~$ source .env/bin/activate
+``` 
+Once you activate your virtual environment you can start Airflow webserver and scheduler 
+
+
+```bash
+~$ airflow webserver
+``` 
+
+
+```bash
+~$ airflow scheduler
+``` 
+
+
+
 ### Getting Started For Development
 
 > **Prerequisite:** Linux OS, Although any Linux distro would work we prefer Debian distros e.q Ubuntu, Debian etc.  
