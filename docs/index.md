@@ -30,7 +30,7 @@ ingestion of ServiceNow data to any cloud or local network storage.
     - **[What miniBRS can do](user_interface.md#what-mini-brs-can-do-)**
     - **[Connections](user_interface.md#connections)**
     - **[Variables](user_interface.md#variables)**
-* ###[Hooks & Operators](hooks_and_operators.md)**
+* ###[Hooks & Operators](hooks_and_operators.md)
 * ###[License](LICENSE.md)
 * ###[About](about.md)
     - **[Who Maintains mini-BRS](about.md#who-maintains-mini-brs)**
