@@ -1,0 +1,10 @@
+site_name: CIP - miniBRS
+nav:
+  - User Guide: index.md
+  - Installation: installation.md
+  - User Interface: user_interface.md
+  - Hook & Operators: hooks_and_operators.md
+  - License: LICENSE.md
+  - About: about.md
+theme:
+    name: readthedocs
