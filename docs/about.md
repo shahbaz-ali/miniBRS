@@ -1,4 +1,4 @@
-#About
+#Who Maintains mini-BRS
 
 <pre>
            _       _       ____  ____  ____
@@ -9,7 +9,7 @@
 
 </pre>
 ---
-##Who Maintains mini-BRS
+
 mini-BRS is the work of the open source team of Cloud Innovation Partners (CIP), and CIP team is 
 responsible for reviewing and merging PRs as well as steering conversation around new feature requests. 
 
@@ -19,8 +19,8 @@ responsible for reviewing and merging PRs as well as steering conversation aroun
 
 
 
-##Cloud Innovation Partners
-
+Cloud Innovation Partners
+---
 We contribute to innovations by creating SaaS solutions and make them accessible to community, this helps us keep in 
 sync with state of art and attract the best fields
 

@@ -1,37 +1,43 @@
-# Getting Started With Apache Airflow
+Installing miniBRS
+---
 
-Installation of airflow is simple, you can find installation details for airflow on the official website [airflow.apache.org](https://airflow.apache.org/docs/stable/start.html) here we shall describe the installation steps for getting ready your development environment specifically for mini-BRS, later we shall describe the process of installation of airflow for mini-BRS on servers.
+miniBRS can be installed either using an Installer script or manually. Using the Installer is the most easiest 
+and straightforward way to install and configure miniBRS. If you are using Ubuntu 18.04 you can install using Installer
+script, For any other OS you would have to do the installation and configuration manually.
+
+---
+
+###Prerequisites
+
+** Database **
+
+You need a database on your database server. If you don’t have a database yet, you can use SQLite database 
+which is default database of Airflow. This will give you an opportunity to test miniBRS even before your database administrator 
+creates a database for you. `Just note, that SQLite is not suitable for production environment`.
 
 
-## Requirements
+mini-BRS is tested with
 
-mini-BRS is tested with:
-
-### Master version
-
-* Python versions: 3.6.9
 * Postgres DB: 10.12
 * MySQL DB: 8.0
-* Sqlite - latest stable (it is used mainly for development purpose)
+* Sqlite - latest stable (it is used mainly for testing purpose)
 
-mini-BRS is tested on
 
-* OS Ubuntu 18.04 - minimum 1 GiB memory & 8 GiB storage.
+** Email Server **
 
-## Things to keep handy !
+You would need an `Email Server` in case you want email alerts for your workflows, 
+Make sure you have SMTP server details like `smtp_host`, `smtp_port`, `email address` and `password` in handy.
+If you don't have an Email Server, you can use Gmail, Outlook or any other email provider make sure you generate 
+`app password` for your email address. In order to know how to generate `app password` for your Gmail account, refer
+[here](https://support.google.com/accounts/answer/185833?hl=en)  
 
-mini-BRS has an installer script associated with it that helps you in getting right things installed on your system. 
-We encourage use of installer for installing mini-BRS. The installer is interactive as it requires user information to get things configured rightly. Please make sure you have following information in hand, so that you don't 
-get stuck during installation process.
-* Do you want to install mini-BRS as a service on your server or you just require it to be started manually ?
-* mini-BRS requires database for its functioning, for this purpose you need to keep the, database *host ip*,
-*username*, *password*, *port*, *database name* in hand.
-* If you want to have email alerts, make sure you have SMTP server details like *smtp_host*, *smtp_port*, *email address* and *password* in handy. If you want to use Gmail, Outlook or any other email provider make sure you generate `app password` for that email address. In order to know how to generate `app password` for your email address, refer
-[create and use app passwords](https://support.google.com/accounts/answer/185833?hl=en)  
+---
 
-## Getting started
+### Installation
 
-**Installation**
+
+
+** Using Installer Script**
 
 1. clone the repository using git
 
@@ -48,7 +54,7 @@ get stuck during installation process.
 Installation script will take care of your needs, it will start downloading the dependencies and requirements for the
 project. During installation you will need to provide various information such as,
 
-1. Installer will prompt you for type of installation to you need, you can either install mini-BRS as a ubuntu service or you can let the installer create a python virtual environment for you.
+1. Installer will prompt you for type of installation you need, you can either install mini-BRS as a ubuntu service or you can let the installer create a python virtual environment for you.
 
 2. Next installer will ask you for the type of database to be used as a meta-database for Airflow, mini-BRS is tested
 for SQLite, MySQL and Postgres. You can choose the type of database and provide the specific database credentials during 
@@ -91,9 +97,9 @@ Once you activate your virtual environment you can start Airflow webserver and s
 ~$ airflow scheduler
 ``` 
 
+---
 
-
-### Getting Started For Development
+### Manual Installation
 
 > **Prerequisite:** Linux OS, Although any Linux distro would work we prefer Debian distros e.q Ubuntu, Debian etc.  
 
@@ -101,17 +107,22 @@ Once you activate your virtual environment you can start Airflow webserver and s
 
 >**Windows:** If you are a windows user and you want to run Apache Airflow on windows platform, you would need extra housekeeping, For windows platform, you would need a Virtual Machine simulator like *VirtualBox* / *VMware* for running Linux on Windows or if you are using Windows 10 then you can use the **Windows Sub System For Linux** to have your airflow installed. In any case, the internet is yours go and find it :wink:  
 
-### Steps
+Steps
+---
+It's good to have your ``workspace`` defined when you are working on multiple projects. 
+we would start by defining a workspace for airflow projects and then create new airflow projects inside this workspace. 
+Every project will be an independent installation with a python virtual environment configured for itself, with this we will be able to maintain separation of concern. 
+without further ado let's get started...
 
-It's good to have your ``workspace`` defined when you are working on multiple projects. we would start by defining a workspace for airflow projects and then create new airflow projects inside this workspace. Every project will be an independent installation with a python virtual environment configured for itself, with this we will be able to maintain separation of concern. without further ado let's get started...
-
-1.  create a workspace in your ``home`` directory, simply create a *folder* named ``airflow_workspace``, it's this folder which is going to hold our airflow projects. In Linux simply issue the following command in you ``bash terminal`` with current working directory (``cwd``) as your ``home`` directory.
+---
+* create a workspace in your ``home`` directory, simply create a *folder* named ``airflow_workspace``, it's this folder which is going to hold our airflow projects. In Linux simply issue the following command in you ``bash terminal`` with current working directory (``cwd``) as your ``home`` directory.
 
 ```bash
 ~$ mkdir airflow_workspace
 ```
 
-2. Now, you have your workspace defined, let's now fetch the project from the ``GitLab`` repository. In order to fetch ``mini-BRS`` project from GitLab, you need to have ``git`` installed in your machine. To check if ``git`` is installed, run the below command in your terminal
+---
+* Now, you have your workspace defined, let's now fetch the project from the ``GitHub`` repository. In order to fetch ``miniBRS`` project from GitHub, you need to have ``git`` installed in your machine. To check if ``git`` is installed, run the below command in your terminal
 
 ```bash
 ~$ git version
@@ -131,15 +142,16 @@ In case, ``git`` is not installed. you can install it by the following command
 ~$ sudo apt-get install git
 ```
 
-Once ``git`` is installed, you can fetch the project from the GitLab repo using below command.
+Once ``git`` is installed, you can fetch the project from the GitHub repo using below command.
 
 make sure your ``cwd`` is your workspace i.e ``airflow_workspace``
 
 ```bash
-~$ git clone https://gitlab.com/shahbaz.ali/vf-leap.git
+~$ git clone https://github.com/Cloud-Innovation-Partners/miniBRS.git
 ```
+---
 
-3. Now, change your directory to ``mini-BRS`` and enter the following command to create a virtual environment.
+* Now, change your directory to ``miniBRS`` and enter the following command to create a virtual environment.
 
 >make sure you are using python3.x and not python2.7
 
@@ -166,9 +178,11 @@ or
 
 Now, you have a virtual environment ready for installing the project dependencies :sunglasses: 
 
-4. Before installing the dependencies you need to activate your virtual environment and also set a ``PATH`` variable with the name ``AIRFLOW_HOME`` it's necessary for your ``airflow`` to find the project files. Let's do it one by one .
+---
 
-* with ``mini-BRS`` as your ``cwd`` hit the below command in terminal
+* Before installing the dependencies you need to activate your virtual environment and also set a ``PATH`` variable with the name ``AIRFLOW_HOME`` it's necessary for your ``airflow`` to find the project files. Let's do it one by one .
+
+* with ``miniBRS`` as your ``cwd`` hit the below command in terminal
 
 ```bash
 ~$ pwd
@@ -176,7 +190,7 @@ Now, you have a virtual environment ready for installing the project dependencie
 This will give you an output something like this
 
 ```
-/home/shahbaz/airflow_workspace/mini-BRS
+/home/<user_name>/airflow_workspace/miniBRS
 ```
 
 copy this output as we need it to set our ``PATH`` variable
@@ -192,7 +206,7 @@ This will open a bash script, scroll to the end of the file and paste the follow
 ```bash
 
 #This is for AIRFLOW usage
-export AIRFLOW_HOME=/home/shahbaz/airflow_workspace/mini-BRS
+export AIRFLOW_HOME=/home/<user_name>/airflow_workspace/miniBRS
 ```
 
 press CTRL+X and y, to close the editor
@@ -203,18 +217,24 @@ press CTRL+X and y, to close the editor
 ~$ source .env/lib/activate
 ```
 
-5. To install project dependencies, we prefer installation using ``requirements.txt`` file. In ``airflow-tdms`` project folder you have a file ``requirement.txt`` which has all the project dependencies list in it. enter the following command to install ``airflow`` and other dependent packages
+---
+
+* To install project dependencies, we prefer installation using ``requirements.txt`` file. In ``airflow-tdms`` project folder you have a file ``requirement.txt`` which has all the project dependencies list in it. enter the following command to install ``airflow`` and other dependent packages
 
 ```bash
 ~$ pip3 install -r requirement.txt
 ```
-6. Once all the dependencies are installed, its time to initialize your ``airflow`` meta-database
+
+---
+
+* Once all the dependencies are installed, its time to initialize your ``airflow`` meta-database
 
 ```bash
 ~$ airflow initdb
 ```
+---
 
-7. Once you have initialized your airflow db, you can start airflow webserver and scheduler
+* Once you have initialized your airflow db, you can start airflow webserver and scheduler
 
 ```bash
 ~$ airflow webserver
