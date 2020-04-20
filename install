@@ -696,7 +696,7 @@ def create_configuration_variables():
     subprocess.Popen(["{} variables -s config '{}'".format(context.get_airflow_executable(), json.dumps(
         {
             "tables": [],
-            "start_date": "1da",
+            "start_date": "1day",
             "frequency": "hourly",
             "threshold": 10000,
             "export_format": "xml",

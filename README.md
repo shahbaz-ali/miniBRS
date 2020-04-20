@@ -172,7 +172,7 @@ click Variables options you will see few variables already defined. these variab
 ```json
 {
   "tables": ["incident","problem","sc_request"], 
-  "start_date": "1da", 
+  "start_date": "1day", 
   "frequency": "hourly", 
   "threshold": 10000, 
   "export_format": "xml", 
@@ -187,7 +187,7 @@ Options
  you want to ingest data to the storage. Please ensure the values inside the table should be valid ServiceNow table names.
  
  - start_date : ```start_date``` provides you a way to get historical data from your ServiceNow instance. It takes values
- of format ```xda``` , where ```x``` is an integer value which specifies the number of the days in past to fetch data.
+ of format ```xday``` , where ```x``` is an integer value which specifies the number of the days in past to fetch data.
  
  - frequency : ```frequency``` refers the schedule interval of the work flow. It can take value such as ```half-hourly```,
  ```hourly```, ```daily``` etc. 

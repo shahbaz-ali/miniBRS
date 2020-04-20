@@ -32,17 +32,26 @@ class TestDates():
     @pytest.mark.start_date
     def test_days_get_start_date(self):
 
-        result1=get_start_date("1da")
+        result1 = get_start_date("1day")
         print(f'{str(get_days(result1))}')
 
-        assert get_days(get_start_date("1da")) == 1
-        assert get_days(get_start_date("2da")) == 2
-        assert get_days(get_start_date("3da")) == 3
-        assert get_days(get_start_date("-3da")) == 3
-        assert get_days(get_start_date("10da")) == 10
+        assert get_days(get_start_date("1day")) == 1
+        assert get_days(get_start_date("1days")) == 1
+        assert get_days(get_start_date("100day")) == 100
+        assert get_days(get_start_date("100days")) == 100
+        assert get_days(get_start_date("2days")) == 2
+        assert get_days(get_start_date("3days")) == 3
+        assert get_days(get_start_date("-3days")) == 3
+        assert get_days(get_start_date("10days")) == 10
 
         with pytest.raises(BadStartDatePreset):
             get_start_date("2xx")
+
+        with pytest.raises(BadStartDatePreset):
+            get_start_date("10months")
+
+        with pytest.raises(BadStartDatePreset):
+            get_start_date("10")
 
     @pytest.mark.days_ago
     def test_days_ago(self):
