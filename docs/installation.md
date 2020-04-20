@@ -1,5 +1,5 @@
-# Installing miniBRS
-
+Installing miniBRS
+==================
 
 miniBRS can be installed either using an Installer script or manually. Using the Installer is the most easiest 
 and straightforward way to install and configure miniBRS. If you are using Ubuntu 18.04 you can install using Installer
@@ -7,7 +7,8 @@ script, For any other OS you would have to do the installation and configuration
 
 ---
 
-### Prerequisites
+Prerequisites
+-------------
 
 ** Database **
 
@@ -33,8 +34,8 @@ If you don't have an Email Server, you can use Gmail, Outlook or any other email
 
 ---
 
-### Installation
-
+Installation
+------------
 
 
 ** Using Installer Script**
@@ -99,8 +100,8 @@ Once you activate your virtual environment you can start Airflow webserver and s
 
 ---
 
-### Manual Installation
-
+Manual Installation
+-------------------
 > **Prerequisite:** Linux OS, Although any Linux distro would work we prefer Debian distros e.q Ubuntu, Debian etc.  
 
 >For **Red Hat** Linux the process of installation would remain same with slight changes specific to the use of corresponding package manager
@@ -122,6 +123,7 @@ without further ado let's get started...
 ```
 
 ---
+
 * Now, you have your workspace defined, let's now fetch the project from the ``GitHub`` repository. In order to fetch ``miniBRS`` project from GitHub, you need to have ``git`` installed in your machine. To check if ``git`` is installed, run the below command in your terminal
 
 ```bash
