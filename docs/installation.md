@@ -1,5 +1,5 @@
-Installing miniBRS
----
+# Installing miniBRS
+
 
 miniBRS can be installed either using an Installer script or manually. Using the Installer is the most easiest 
 and straightforward way to install and configure miniBRS. If you are using Ubuntu 18.04 you can install using Installer
@@ -7,7 +7,7 @@ script, For any other OS you would have to do the installation and configuration
 
 ---
 
-###Prerequisites
+### Prerequisites
 
 ** Database **
 
