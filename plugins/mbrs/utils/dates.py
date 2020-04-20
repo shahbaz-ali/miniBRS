@@ -2,20 +2,37 @@
 #   Copyright (c)Cloud Innovation Partners 2020.
 #   http://www.cloudinp.com
 
+"""
+This is module has helper function for date time
+"""
+
+import calendar
 from datetime import timedelta, datetime
+from airflow.utils.log.logging_mixin import LoggingMixin
 from plugins.mbrs.utils.exceptions import BadStartDatePreset
 from airflow.utils.dates import cron_presets
 from airflow.utils.timezone import utcnow
-from airflow.utils.log.logging_mixin import LoggingMixin
-import calendar
-cron_presets['@half-hourly'] ='*/30 * * * *'
+
+cron_presets['@half-hourly'] = '*/30 * * * *'
 
 
 def get_start_date(start_date):
+    """
+    Wrapper over the function days_ago, used to check the valid start_date config format
+    :param start_date:
+    :return: datetime
+    :exception BadStartDatePreset
+    """
+    if str(start_date).__contains__('days'):
+        preset = str(start_date)[-4:]
+        value = str(start_date)[:-4]
+    elif str(start_date).__contains__('day'):
+        preset = str(start_date)[-3:]
+        value = str(start_date)[:-3]
+    else:
+        raise BadStartDatePreset
 
-    preset = str(start_date)[-2:]
-    value = str(start_date)[:-2]
-    value=int(value)
+    value = int(value)
 
     if value < 0:
         value = -value
@@ -23,10 +40,11 @@ def get_start_date(start_date):
 
     if preset == 'mo':
         return days_ago(months_ago(int(value)))
-    elif preset == 'da':
+    elif preset == 'day' or preset == 'days':
         return days_ago(int(value))
     else:
         raise BadStartDatePreset
+
 
 def days_ago(n, hour=0, minute=0, second=0, microsecond=0):
     """
@@ -44,7 +62,7 @@ def days_ago(n, hour=0, minute=0, second=0, microsecond=0):
     return (today - timedelta(days=n)).replace(tzinfo=None)
 
 
-def months_ago(n,hour=0, minute=0, second=0, microsecond=0):
+def months_ago(n, hour=0, minute=0, second=0, microsecond=0):
     """
         returns number of days  representing `n` months ago. By default the time is
         set to midnight.
@@ -65,20 +83,23 @@ def months_ago(n,hour=0, minute=0, second=0, microsecond=0):
         if calendar.isleap(today.year) and i == 2:
             days += calendar.mdays[i] + 1
         else:
-            days+=calendar.mdays[i]
+            days += calendar.mdays[i]
 
-        i-=1
+        i -= 1
 
-    days+=today.day
+    days += today.day
 
     return days - 1
 
 
-
-
-def one_month_ago(execution_date:str):
+def one_month_ago(execution_date: str):
+    """
+    Get number of days in one month
+    :param execution_date:
+    :return: int
+    """
     date = datetime.strptime(execution_date[:19], "%Y-%m-%dT%H:%M:%S")
-    days=0
+    days = 0
     if date.month == 1:
         days = calendar.mdays[12]
     else:

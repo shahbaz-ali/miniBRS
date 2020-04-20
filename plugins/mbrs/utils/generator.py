@@ -204,7 +204,7 @@ def create_configuration_variables():
         key='config',
         value=json.dumps({
             "tables": [],
-            "start_date": "1da",
+            "start_date": "1day",
             "frequency": "hourly",
             "threshold": 10000,
             "export_format": "xml",
