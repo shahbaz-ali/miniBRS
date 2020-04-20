@@ -158,7 +158,7 @@ class ServiceNowToGenericTransferOperator(BaseOperator):
                                                       self.table
                                                       )
 
-        bk_file_name = '{}_{}_{}.xml'.format(self.table, str(self.from_time), str(self.to_time))
+        bk_file_name = '{}_{}_{}.xml'.format(self.table, str(self.from_time), str(self.to_time)).replace(' ', '_')
 
         bk_file_path = l_dir_backup_path + bk_file_name
 
