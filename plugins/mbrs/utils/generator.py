@@ -25,11 +25,19 @@ from airflow import settings, models
 from airflow.exceptions import AirflowConfigException
 from plugins.mbrs.modals.recovery_modals import Dags
 from plugins.mbrs.utils.dates import get_start_date
-from plugins.mbrs.utils.exceptions import PostgreSQLConnectionNotFoundException, \
-    AirflowException, MYSQLConnectionNotFoundException, ServiceNowConnectionNotFoundException, \
-    S3ConnectionNotFoundException, ConfigVariableNotFoundException, \
-    AirflowAPICredentialsNotFoundException, SFTPConnectionNotFoundException, \
-    StorageTypeNotFoundException, InvalidStorageTypeException, DropboxConnectionNotFoundException
+from plugins.mbrs.utils.exceptions import (PostgreSQLConnectionNotFoundException, 
+                                           AirflowException, 
+                                           MYSQLConnectionNotFoundException, 
+                                           ServiceNowConnectionNotFoundException, 
+                                           S3ConnectionNotFoundException, 
+                                           ConfigVariableNotFoundException, 
+                                           AirflowAPICredentialsNotFoundException, 
+                                           SFTPConnectionNotFoundException, 
+                                           StorageTypeNotFoundException, 
+                                           InvalidStorageTypeException, 
+                                           DropboxConnectionNotFoundException,
+                                           MSSQLConnectionNotFoundException
+                                          )
 
 bootstrap = False
 servicenow_default = None
@@ -431,6 +439,7 @@ def is_storage_defined():
     global dropbox_default
     global postgres_default
     global mysql_default
+    global mssql_default
     try:
 
         storage_type = str(config['storage_type']).lower()
@@ -479,6 +488,14 @@ def is_storage_defined():
             except AirflowException:
 
                 raise MYSQLConnectionNotFoundException()
+
+        elif storage_type == 'mssql':
+            try:
+                mssql_default = BaseHook.get_connection('mssql_default')
+
+            except AirflowException:
+
+                raise MSSQLConnectionNotFoundException()
 
         else:
 
