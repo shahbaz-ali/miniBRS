@@ -26,6 +26,9 @@ from plugins.mbrs.operators.servicenow_to_dropbox_transfer_operator import Servi
 from plugins.mbrs.operators.servicenow_to_postgres_transfer_operator import ServiceNowToPostgresqlTransferOperator
 {% elif data.storage_type == 'mysql' %}
 from plugins.mbrs.operators.servicenow_to_mysql_transfer_operator import ServiceNowToMYSQLTransferOperator
+{% elif data.storage_type == 'mssql' %}
+from plugins.mbrs.operators.servicenow_to_mssql_transfer_operator import ServiceNowToMSSQLTransferOperator
+
 {% endif %}
 
 
@@ -70,7 +73,11 @@ submission = ServiceNowToDropboxTransferOperator(task_id='send_data_to_submissio
 submission = ServiceNowToPostgresqlTransferOperator(task_id='send_data_to_submission',dag=dag,snow_id ='servicenow_default',config = 'config',storage_conn_id = 'postgres_default',table = table_name,execution_date=dag.params.get('execution_date'))
 {% elif data.storage_type == 'mysql' %}
 submission = ServiceNowToMYSQLTransferOperator(task_id='send_data_to_submission',dag=dag,snow_id ='servicenow_default',config = 'config',storage_conn_id = 'mysql_default',table = table_name,execution_date=dag.params.get('execution_date'))
+{% elif data.storage_type == 'mssql' %}
+submission = ServiceNowToMSSQLTransferOperator(task_id='send_data_to_submission',dag=dag,snow_id ='servicenow_default',config = 'config',storage_conn_id = 'mssql_default',table = table_name,execution_date=dag.params.get('execution_date'))
+
 {% endif %}
+
 
 {% endblock %}
 

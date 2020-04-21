@@ -225,3 +225,21 @@ class MYSQLConnectionNotFoundException(AirflowException):
             return "MYSQLConnectionNotFoundException, {}".format(self.message)
         else:
             return "MYSQLConnectionNotFoundException has been raised"
+
+class MSSQLConnectionNotFoundException(AirflowException):
+    '''
+    @:exception: MSSQLConnectionNotFoundException, raised if no connection
+    with connection id 'mssql_default' is found in the meta-database
+    '''
+
+    def __init__(self, *args):
+        if args:
+            self.message = args[0]
+        else:
+            self.message = "No connection with id 'mssql_default' defined"
+
+    def __str__(self):
+        if self.message:
+            return "MSSQLConnectionNotFoundException, {}".format(self.message)
+        else:
+            return "MSSQLConnectionNotFoundException has been raised"
