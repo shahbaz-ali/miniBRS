@@ -26,17 +26,21 @@ Full documentation is available at https://minibrs.readthedocs.io/ .
 * **[Upgradation](upgrade.md)**
 
 **Getting Started**
-* **[User Interface](user_interface.md)**
-    - [How to Use](user_intserface.md#how-to-use)
-    - [What miniBRS can do](user_interface.md#what-mini-brs-can-do-)
-    - [Connections](user_interface.md#connections)
-    - [Variables](user_interface.md#variables)
 * **[Settings](settings.md)**
+    - [How to Use](settings.md#how-to-use)
+    - [Connections](settings.md#connections)
+    - [Variables](settings.md#variables)
+    - [Notifications](settings.md#notifications)
 * **[How It Works](how_it_works.md)**
+    - [Incident Backup Use Case](how_it_works.md#incident-backup-use-case)
 
 **Advanced Features**
 * **[Hooks & Operators](hooks_and_operators.md)**
+    - [Hooks](hooks_and_operators.md#hooks)
+    - [Operators](hooks_and_operators.md#operators)
 * **[Logs](logs.md)**
+    - [Failed DAGs](logs.md#failed-dags)
+    - [System Logs](logs.md#system-logs)
 
 **About**
 * **[Who Maintains mini-BRS](about.md#who-maintains-mini-brs)**
