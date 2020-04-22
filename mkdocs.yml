@@ -7,9 +7,8 @@ nav:
   - User Guide: index.md
   - First Steps:
     - Installation: installation.md
-    - Upgradation: upgrade.md
+    - Upgrade: upgrade.md
   - Getting Started:
-    - User Interface: user_interface.md
     - Settings: settings.md
     - How It Works: how_it_works.md
   - Advanced Features:

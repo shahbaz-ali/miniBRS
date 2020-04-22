@@ -1,4 +1,4 @@
-Upgrading miniBRS
+Upgrade miniBRS
 ---
 
 This chapter guides you through the upgrade process of miniBRS

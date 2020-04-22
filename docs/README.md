@@ -17,19 +17,31 @@ Full documentation is available at https://minibrs.readthedocs.io/ .
 
 ## Table of Contents
 
+**First Steps**
 * **[Installation](installation.md)**
-    - [Requirements](installation.md#requirements)
-    - [Things to keep handy !](installation.md#things-to-keep-handy-!)
-    - [Getting started](installation.md#getting-started)
-* **[User Interface](user_interface.md)**
-    - [How to Use](user_intserface.md#how-to-use)
-    - [What miniBRS can do](user_interface.md#what-mini-brs-can-do-)
-    - [Connections](user_interface.md#connections)
-    - [Variables](user_interface.md#variables)
-* **[Hooks & Operators](hooks_and_operators.md)**
-* **[License](LICENSE.md)**
-* **[About](about.md)**
-    - [Who Maintains mini-BRS](about.md#who-maintains-mini-brs)
-    - [Cloud Innovation Partners](about.md#cloud-innovation-partners)
+    - [Prerequisites](installation.md#prerequisites)
+    - [Installation](installation.md#installation)
+    - [Manual Installation](installation.md#manual-installation)
+    - [References](installation.md#references)
+* **[Upgradation](upgrade.md)**
 
----
+**Getting Started**
+* **[Settings](settings.md)**
+    - [How to Use](settings.md#how-to-use)
+    - [Connections](settings.md#connections)
+    - [Variables](settings.md#variables)
+    - [Notifications](settings.md#notifications)
+* **[How It Works](how_it_works.md)**
+    - [Incident Backup Use Case](how_it_works.md#incident-backup-use-case)
+
+**Advanced Features**
+* **[Hooks & Operators](hooks_and_operators.md)**
+    - [Hooks](hooks_and_operators.md#hooks)
+    - [Operators](hooks_and_operators.md#operators)
+* **[Logs](logs.md)**
+    - [Failed DAGs](logs.md#failed-dags)
+    - [System Logs](logs.md#system-logs)
+
+**About**
+* **[Who Maintains mini-BRS](about.md#who-maintains-mini-brs)**
+* **[License](LICENSE.md)**
