@@ -23,7 +23,7 @@ Full documentation is available at https://minibrs.readthedocs.io/ .
     - [Installation](installation.md#installation)
     - [Manual Installation](installation.md#manual-installation)
     - [References](installation.md#references)
-* **[Upgradation](upgrade.md)**
+* **[Upgrade](upgrade.md)**
 
 **Getting Started**
 * **[Settings](settings.md)**
