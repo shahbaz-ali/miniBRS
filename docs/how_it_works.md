@@ -56,6 +56,3 @@ for you. You must wait about **2 minutes** to get your changes reflected in the 
 from the DAGs UI of the webserver.
 
 <br/>  
-    
-    
-     
