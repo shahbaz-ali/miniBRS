@@ -20,7 +20,6 @@ of pipelines, centralized in the metadata database. miniBRS provides definition 
 
 ## Operator's
 
-1. **servicenow_to_sftp_transfer_operator :**
 ### Database Operators
 The `Database Operators` transfers the data from `ServiceNow` to a database. The current version of miniBRS supports three database operators. These are `ServiceNowToMYSQLTransferOperator`, `ServiceNowToMSSQLTransferOperator` and `ServiceNowToPostgresqlTransferOperator`. 
 
@@ -52,8 +51,6 @@ task = ServiceNowToMYSQLTransferOperator(task_id = 'your_task_id',
 
 Similarly `ServiceNowToMSSQLTransferOperator`  and `ServiceNowToPostgresqlTransferOperator` takes the following form:
 
-
-`ServiceNowToMSSQLTransferOperator:`
 **plugins/mbrs/operators/servicenow_to_mssql_transfer_operator.py**
 ```
   
@@ -68,7 +65,6 @@ task = ServiceNowToMSSQLTransferOperator(task_id = 'your_task_id',
    
 ```
 
-`ServiceNowToPostgresqlTransferOperator:`
 **plugins/mbrs/operators/servicenow_to_postgresql_transfer_operator.py**
 ```
           
@@ -114,7 +110,6 @@ task = ServiceNowToS3TransferOperator(task_id = 'your_task_id',
    
 Similarly `ServiceNowToDropboxTransferOperator` takes the following form:
 
-`ServiceNowToDropboxTransferOperator:`
 **plugins/mbrs/operators/servicenow_to_dropbox_transfer_operator.py**
 ```
          
