@@ -1,11 +1,11 @@
-#How miniBRS Works
+# How miniBRS Works
 
 This article assumes that you have **`miniBRS`** up and running on your machine and now you want to start using it, by scheduling
 few DAGs. Before moving ahead in this article, please make sure you already have checked out the [Settings](settings.md)
 article, As we are going to use concepts and settings defined there, In explaining **`incident`** use case. Without any further ado
 Let's get started.  
 
-##Incident Backup Use Case
+## Incident Backup Use Case
 
 Here we shall explain to you, How you can register your Service Now instance and a storage platform such as Amazon S3 in **`miniBRS`** 
 and change the configuration settings provided as per your requirement. We shall use a step by step process to explain this use case.
