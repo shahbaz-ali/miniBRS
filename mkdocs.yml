@@ -12,8 +12,8 @@ nav:
     - Settings: settings.md
     - How It Works: how_it_works.md
   - Advanced Features:
-    - Hook & Operators: hooks_and_operators.md
-    - Logs: logs.md
+    - Hooks & Operators: hooks_and_operators.md
+    - Recovery & Logs: logs.md
   - About:
     - Who Maintains miniBRS: about.md
     - License: LICENSE.md
