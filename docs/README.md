@@ -14,10 +14,10 @@ Full documentation is available at https://minibrs.readthedocs.io/ .
 
 ---
 
-
-## Table of Contents
+#Table of Contents
 
 **First Steps**
+
 * **[Installation](installation.md)**
     - [Prerequisites](installation.md#prerequisites)
     - [Installation](installation.md#installation)
@@ -26,7 +26,9 @@ Full documentation is available at https://minibrs.readthedocs.io/ .
 * **[Upgrade](upgrade.md)**
 
 **Getting Started**
+
 * **[Settings](settings.md)**
+    - [Concepts](settings.md#concepts)
     - [How to Use](settings.md#how-to-use)
     - [Connections](settings.md#connections)
     - [Variables](settings.md#variables)
@@ -35,13 +37,16 @@ Full documentation is available at https://minibrs.readthedocs.io/ .
     - [Incident Backup Use Case](how_it_works.md#incident-backup-use-case)
 
 **Advanced Features**
+
 * **[Hooks & Operators](hooks_and_operators.md)**
     - [Hooks](hooks_and_operators.md#hooks)
     - [Operators](hooks_and_operators.md#operators)
-* **[Logs](logs.md)**
+* **[Recovery & Logs](logs.md)**
+    - [Recovery](logs.md)
     - [Failed DAGs](logs.md#failed-dags)
-    - [System Logs](logs.md#system-logs)
+    - [Logs](logs.md#logs)
 
 **About**
+
 * **[Who Maintains mini-BRS](about.md#who-maintains-mini-brs)**
 * **[License](LICENSE.md)**

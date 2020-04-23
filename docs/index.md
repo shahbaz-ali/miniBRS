@@ -46,9 +46,10 @@ ingestion of SaaS data to any cloud or local network storage.
 * **[Hooks & Operators](hooks_and_operators.md)**
     - [Hooks](hooks_and_operators.md#hooks)
     - [Operators](hooks_and_operators.md#operators)
-* **[Logs](logs.md)**
+* **[Recovery & Logs](logs.md)**
+    - [Recovery](logs.md)
     - [Failed DAGs](logs.md#failed-dags)
-    - [System Logs](logs.md#system-logs)
+    - [Logs](logs.md#logs)
 
 **About**
 
