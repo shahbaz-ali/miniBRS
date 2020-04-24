@@ -1,29 +1,44 @@
+"""
 #   mbrs
 #   Copyright (c)Cloud Innovation Partners 2020.
 #   http://www.cloudinp.com
-
-from airflow import AirflowException
-from airflow.hooks.base_hook import BaseHook
-from plugins.mbrs.operators.common.servicenow_to_generic_transfer_operator import ServiceNowToGenericTransferOperator
-from plugins.mbrs.utils.exceptions import MYSQLConnectionNotFoundException, MSSQLConnectionNotFoundException
+"""
+import itertools
 import xml.etree.ElementTree as ET
 import pymssql as ms
 from airflow import LoggingMixin
-import itertools
+from airflow import AirflowException
+from airflow.hooks.base_hook import BaseHook
+from plugins.mbrs.operators.common.servicenow_to_generic_transfer_operator \
+    import ServiceNowToGenericTransferOperator
+from plugins.mbrs.utils.exceptions import MSSQLConnectionNotFoundException
 
 count = 0
 
 
 class ServiceNowToMSSQLTransferOperator(ServiceNowToGenericTransferOperator):
+    """
+    ServiceNowToMSSQLTransferOperator transfers the data from ServiceNow to Mssql.
+    It parses the xml data of ServiceNow with the help of generators in python, and creates
+    an object for each parsed data and stores it into MsSql database.
+    """
 
     def _upload(self, context):
-
+        """
+        This method makes sure that the MsSql credentials are available, once they are available,
+        we create a connection with the MsSql database with the help of these credentials.
+        """
         try:
             credentials_mssql = BaseHook.get_connection(self.storage_conn_id)
-            self.login = credentials_mssql.login
-            self.password = credentials_mssql.password
-            self.host = credentials_mssql.host
-            self.database_name = credentials_mssql.schema
+            login = credentials_mssql.login
+            password = credentials_mssql.password
+            host = credentials_mssql.host
+            database_name = credentials_mssql.schema
+            port = credentials_mssql.port
+
+            if not port:  # If port is empty,set default port number
+                port = 1433
+            LoggingMixin().log.warning(f'PORT NUMBER : {port}')
         except AirflowException as e:
             raise MSSQLConnectionNotFoundException()
 
@@ -39,13 +54,19 @@ class ServiceNowToMSSQLTransferOperator(ServiceNowToGenericTransferOperator):
         obj = next(n_objects)
         cols = list(obj.keys())
         values_for_size = list(obj.values())
-        storage = Storage(self.login, self.password, self.host, self.database_name, table_name)
+        storage = Storage(login, password, host, database_name, table_name, port)
         # storage.create_database()
         storage.create_table(cols, values_for_size)
-        storage.insert_data(n_objects,cols)
+        storage.insert_data(n_objects, cols)
 
 
+# pylint: disable=too-few-public-methods
 class ParseFile():
+    """
+    This class is actually responsible for parsing the xml data with the help of generators,
+    and creates an object for each parsed data
+    """
+
     global tree, markers, incident
 
     markers = ['opened_by', 'sys_domain', 'caller_id', 'assignment_group']
@@ -53,6 +74,7 @@ class ParseFile():
 
     @staticmethod
     def get_n_objects(file_path):
+        """ This methos pareses the xaml file with the help of iterpase() method """
         tree = ET.iterparse(file_path, events=('start', 'end'))
         for event, elem in tree:
             if event == 'start' and elem.tag != 'response' and elem.tag != 'result':
@@ -63,27 +85,29 @@ class ParseFile():
                     tag = tag + "_"
 
                 # check for markers
-                if tag in markers:
+                if tag in markers:  # pylint: disable=undefined-variable
                     link = elem.find('link')
 
                     # check link for none -- sometimes the link will be None
-                    if link == None:
-                        incident[tag] = '\'Not present\''
+                    if link is None:
+                        incident[tag] = '\'Not present\''  # pylint: disable=undefined-variable
                     else:
                         link_text = link.text
                         # sometimes the text will be none
-                        incident[tag] = "'" + link_text + "'" if link_text != None else "\'empty\'"
+                        incident[
+                            tag] = "'" + link_text + "'" if link_text is not None else "\'empty\'"  # pylint: disable=undefined-variable
 
-                elif tag != 'link' and tag != 'value':
-                    incident[tag] = "'" + str(text).strip() + "'"
+                elif tag not in ('link', 'value'):
+                    incident[tag] = "'" + str(text).strip() + "'"  # pylint: disable=undefined-variable
 
             elif event == 'end':
                 if elem.tag == 'result':
-                    yield incident
+                    yield incident  # pylint: disable=undefined-variable
                     elem.clear()  # without this the memory usage goes very high
 
 
 def get_query_with_col_size(column_names, values_for_size):
+    """This method returns a query with column size """
     sub_query = ''
     count = len(column_names)  # or len(values_for_size) ,both are equal in length
     for i in range(count):
@@ -96,16 +120,26 @@ def get_query_with_col_size(column_names, values_for_size):
 
 
 class Storage():
+    """
+    This class takes the MsSql credentials and creates a connection with MsSql database
+    """
 
-    def __init__(self, login, password, host, database_name, table_name):
+    def __init__(self, login, password, host, database_name, table_name, port):  # pylint: disable=too-many-arguments
         self.login = login
         self.password = password
         self.host = host
         self.database_name = database_name
         self.table_name = table_name
+        self.port = port
 
     def create_table(self, column_names, values_for_size):
-        conn = ms.connect(host=self.host, user=self.login, password=self.password, database=self.database_name)
+        """
+        This method creates the table in the database(database name is specified in the parameter
+        self.database_name )
+        """
+
+        conn = ms.connect(host=self.host, user=self.login, password=self.password,
+                          port=self.port, database=self.database_name)
         cursor = conn.cursor()
         sub_query = get_query_with_col_size(column_names, values_for_size)
         check_if_table_exists = "if not exists (select * from sysobjects where name='{}')".format(self.table_name)
@@ -115,7 +149,8 @@ class Storage():
         conn.commit()
         conn.close()
 
-    def insert_data(self, n_objects,column_names):
+    def insert_data(self, n_objects, column_names):
+        """ This method inserts the parsed data(n_objects) in the MsSql database"""
         lst = []
         step = 100
         conn = ms.connect(server=self.host, user=self.login, password=self.password, database=self.database_name)
@@ -139,4 +174,3 @@ class Storage():
             conn.commit()
             lst.clear()
         conn.close()
-
