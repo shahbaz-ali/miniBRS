@@ -14,7 +14,7 @@ Full documentation is available at https://minibrs.readthedocs.io/ .
 
 ---
 
-#Table of Contents
+# Table of Contents
 
 **First Steps**
 
