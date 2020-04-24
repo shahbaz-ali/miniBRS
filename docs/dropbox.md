@@ -6,26 +6,39 @@ Here we shall be describing the steps for generating the **`access_token`** for 
 
 1. Hit the following URL  [www.dropbox.com/developers](https://www.dropbox.com/developers) in your browser.  Click on the `App Console` button on the top right side of the webpage, It will take you to the dropbox login page, If you are not logged in else you will be redirected to **`App Console`** webpage. Sign in with your credentials and proceed.
  
-  ![](img/Dropbox1.png)
+    ![](img/Dropbox1.png)
+    
+    <br/>
+    
+2. Once the login is success, a `Create app` button appears in the `App Console` page. 
 
-2. Once the login is success, a `Create app` button appears in the `App Console` page.
+    ![](img/Dropbox2.png) 
+    
+    Click on the `Create app` button, You will see `DBX Platform` screen with various setting options listed. choose the values for the options as shown below: 
+    
+    * For **`Choose an Api`** option select `Dropbox API`. 
+    * For **`Type Access`** select `Full Dropbox`. 
+    * And in the last field choose any name for your `app`. 
+    
+    <br/>
+    
+    ![](img/Dropbox3.png) 
+    
+    <br/>
+    
+    After selecting all options as shown above, click on the **`Create app`** button at the bottom right, This will create an  app for you. Once app is created by **`DBX platform`** you will be redirected to the **`App Console`** page and now you see  an entry for your created app. 
+    
+    <br/>
+    
+    ![](img/Dropbox5.png)
+ 
+    <br/>
+    
+3. Click on the newly created app icon, In the `Settings` tab  hit the `Generate` button, This will generate a 64 character long **`access_token`**.
+ 
+    ![](img/Dropbox4.png)
+    
+    <br/>
+    
+     Congratulation, you have successfully generated your token. Copy it and paste it into the `login field` of `dropbox_default` connection id in the `Airflow UI`. Now You have successfully registered your dropbox storage with **`miniBRS`**
 
-  ![](img/Dropbox2.png)
-  
-  Click on the `Create app` button, You will see `DBX Platform` screen with various setting options listed. choose the values for the options as shown below:
-  
-   * For **`Choose an Api`** option select `Dropbox API`. 
-   * For **`Type Access`** select `Full Dropbox`.
-   * And in the last field choose any name for your `app`.
-  
-  ![](img/Dropbox3.png)
-   
- After selecting all options as shown above, click on the **`Create app`** button at the bottom right, This will create an  app for you. Once app is created by **`DBX platform`** you will be redirected to the **`App Console`** page and now you see  an entry for your created app.
-  
-3. Click on the newly created app icon, In the `Settings` tab  hit the `Generate` button, This will generate a 64 character long **`access_token`**. Congratulation, you have successfully generated your token. Copy it and paste it into the `login field` of `dropbox_default` connection id in the `Airflow UI`. Now You have successfully registered your dropbox storage with **`miniBRS`**
-  
-  ![](img/Dropbox4.png)
-  
-  
-  
-   ![](img/Dropbox5.png)

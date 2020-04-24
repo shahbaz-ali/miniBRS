@@ -111,9 +111,14 @@ please do not change the ``Conn Id`` value. Add your ServiceNow instance URL to 
 add the URL with ``https`` appended e.g if your instance is `dev1234.service-now.com` save it as `https://dev1234.service-now.com` 
 in the `Host` field of the form. Also, you need to add ServiceNow user name to `Log in` field and password to `Password` field of the form.
 
+**The absence of this connection id from the meta-database raises `ServiceNowConnectionNotFoundException`**
+
 #### sftp_default:
 If you want to ingest your SaaS data to an SFTP account, you can add the SFTP connection
 details in `sftp_default` connection entry. Add sftp host IP in the ``Host`` field, sftp user name in the `Login` field and sftp user password in the `Password` field of the form, nothing else needs to be changed.
+
+**The absence of this connection id from the meta-database raises `SFTPConnectionNotFoundException`**
+
 
 #### s3_default:
 If you want to ingest your SaaS  data to Amazon S3 account, you need to have `access_key_id` 
@@ -122,23 +127,34 @@ and `secret_key_id` for your s3 storage. Add `access_key_id` to `Login` and `sec
 `region` and `bucket` name you need to add that to the extras field of the form. The extras field has a JSON string with
 `region-name` and `bucket-name` as attributes, you can specify your region name and bucket name correspondingly  
 
+**The absence of this connection id from the meta-database raises `S3ConnectionNotFoundException`**
+
 #### dropbox_default:
 miniBRS provides you with an option to ingest your SaaS data to `Dropbox`, for this you need to generate `access_token`
 for your dropbox account and add that `access_token` to the `Password` field of the
 connection. To generate `access_token` for you account please check out the following Reference[<sup> \[2\] </sup>](#references)
+
+**The absence of this connection id from the meta-database raises `DropboxConnectionNotFoundException`**
 
 #### mysql_default:
 This is a default connection used to store MySQL database credentials, If you want to use MySQL as a storage platform, you
 can store your MySQL database credentials in this connection. Add your database hostname in `Host` field, database name to
 `Schema` field, Username to `Log in` field, Password to `Password` field and port to `Port` field of the connection form
 
+**The absence of this connection id from the meta-database raises `MySQLConnectionNotFoundException`**
+
 #### postgres_default:
 This is a default connection used to store Postgres database credentials, If you want to use Postgres as a storage platform, you
 can store your Postgres database credentials in this connection.
 
+**The absence of this connection id from the meta-database raises `PostgreSQLConnectionNotFoundException`**
+
 #### mssql_default:
 This is a default connection used to store Microsoft SQL Server database credentials, If you want to use SQL Server as a 
 storage platform, you can store your database credentials in this connection.
+
+**The absence of this connection id from the meta-database raises `MSSQLConnectionNotFoundException`**
+
 
     Important Note:
 
@@ -216,6 +232,9 @@ each attribute now.
     
  - **email:** If you have configured SMTP server details during installation or you have manually set them in
  ```airflow.cfg``` file then you can specify the email_address here to which the failure alerts should be sent.
+
+**The absence of this variable from the meta-database raises `ConfigVariableNotFoundException`**
+
     
  The other two variables ```dag_creation_dates``` and ```r_config``` are meant for internal usage, their presence is
  necessary for normal functioning of miniBRS.

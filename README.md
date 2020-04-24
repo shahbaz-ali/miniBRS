@@ -50,6 +50,13 @@ Full documentation is available at https://minibrs.readthedocs.io/ .
     - [Failed DAGs](docs/logs.md#failed-dags)
     - [Logs](docs/logs.md#logs)
 
+**References**
+
+* **[Generate DropBox access_token](docs/dropbox.md)**
+* **[Installing Database Other than SQLite for Airflow](https://airflow.apache.org/docs/stable/installation.html#initiating-airflow-database)**
+* **[Installing Airflow as a Service](https://medium.com/@shahbaz.ali03/run-apache-airflow-as-a-service-on-ubuntu-18-04-server-b637c03f4722)**
+
+
 **About**
 
 * **[Who Maintains mini-BRS](docs/about.md#who-maintains-mini-brs)**
