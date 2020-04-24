@@ -1,5 +1,6 @@
 site_name: CIP - miniBRS
 repo_url: https://github.com/Cloud-Innovation-Partners/miniBRS
+edit_uri: edit/v1-0-dev/docs
 site_description: mini-BRS is a tool that provides ServiceNow SalesForce data backup facility via programmatic workflows scheduled and monitored by Apache Airflow
 site_author: Cloud Innovation Partners
 
