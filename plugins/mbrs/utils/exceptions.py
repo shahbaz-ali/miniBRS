@@ -243,3 +243,22 @@ class MSSQLConnectionNotFoundException(AirflowException):
             return "MSSQLConnectionNotFoundException, {}".format(self.message)
         else:
             return "MSSQLConnectionNotFoundException has been raised"
+
+
+class GoogleDriveConnectionNotFoundException(AirflowException):
+    '''
+    @:exception: GoogleDriveConnectionNotFoundException, raised if no connection
+    with connection id 'googel_drive_default' is found in the meta-database
+    '''
+
+    def __init__(self, *args):
+        if args:
+            self.message = args[0]
+        else:
+            self.message = "No connection with id 'googel_drive_default' defined"
+
+    def __str__(self):
+        if self.message:
+            return "GoogleDriveConnectionNotFoundException, {}".format(self.message)
+        else:
+            return "GoogleDriveConnectionNotFoundException has been raised"

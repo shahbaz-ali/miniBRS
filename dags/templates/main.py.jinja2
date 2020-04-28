@@ -28,6 +28,8 @@ from plugins.mbrs.operators.servicenow_to_postgres_transfer_operator import Serv
 from plugins.mbrs.operators.servicenow_to_mysql_transfer_operator import ServiceNowToMYSQLTransferOperator
 {% elif data.storage_type == 'mssql' %}
 from plugins.mbrs.operators.servicenow_to_mssql_transfer_operator import ServiceNowToMSSQLTransferOperator
+{% elif data.storage_type == 'googledrive' %}
+from plugins.mbrs.operators.servicenow_to_googledrive_transfer_operator import ServiceNowToGoogleDriveTransferOperator
 
 {% endif %}
 
@@ -75,6 +77,8 @@ submission = ServiceNowToPostgresqlTransferOperator(task_id='send_data_to_submis
 submission = ServiceNowToMYSQLTransferOperator(task_id='send_data_to_submission',dag=dag,snow_id ='servicenow_default',config = 'config',storage_conn_id = 'mysql_default',table = table_name,execution_date=dag.params.get('execution_date'))
 {% elif data.storage_type == 'mssql' %}
 submission = ServiceNowToMSSQLTransferOperator(task_id='send_data_to_submission',dag=dag,snow_id ='servicenow_default',config = 'config',storage_conn_id = 'mssql_default',table = table_name,execution_date=dag.params.get('execution_date'))
+{% elif data.storage_type == 'googledrive' %}
+submission = ServiceNowToGoogleDriveTransferOperator(task_id='send_data_to_submission',dag=dag,snow_id ='servicenow_default',config = 'config',storage_conn_id = 'google_drive_default',table = table_name,execution_date=dag.params.get('execution_date'))
 
 {% endif %}
 

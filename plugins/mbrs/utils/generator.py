@@ -25,19 +25,19 @@ from airflow import settings, models
 from airflow.exceptions import AirflowConfigException
 from plugins.mbrs.modals.recovery_modals import Dags
 from plugins.mbrs.utils.dates import get_start_date
-from plugins.mbrs.utils.exceptions import (PostgreSQLConnectionNotFoundException, 
-                                           AirflowException, 
-                                           MYSQLConnectionNotFoundException, 
-                                           ServiceNowConnectionNotFoundException, 
-                                           S3ConnectionNotFoundException, 
-                                           ConfigVariableNotFoundException, 
-                                           AirflowAPICredentialsNotFoundException, 
-                                           SFTPConnectionNotFoundException, 
-                                           StorageTypeNotFoundException, 
-                                           InvalidStorageTypeException, 
+from plugins.mbrs.utils.exceptions import (PostgreSQLConnectionNotFoundException,
+                                           AirflowException,
+                                           MYSQLConnectionNotFoundException,
+                                           ServiceNowConnectionNotFoundException,
+                                           S3ConnectionNotFoundException,
+                                           ConfigVariableNotFoundException,
+                                           AirflowAPICredentialsNotFoundException,
+                                           SFTPConnectionNotFoundException,
+                                           StorageTypeNotFoundException,
+                                           InvalidStorageTypeException,
                                            DropboxConnectionNotFoundException,
-                                           MSSQLConnectionNotFoundException
-                                          )
+                                           MSSQLConnectionNotFoundException,
+                                           GoogleDriveConnectionNotFoundException)
 
 bootstrap = False
 servicenow_default = None
@@ -440,6 +440,7 @@ def is_storage_defined():
     global postgres_default
     global mysql_default
     global mssql_default
+    global google_drive_default
     try:
 
         storage_type = str(config['storage_type']).lower()
@@ -496,6 +497,14 @@ def is_storage_defined():
             except AirflowException:
 
                 raise MSSQLConnectionNotFoundException()
+
+        elif storage_type == 'googledrive':
+            try:
+                google_drive_default = BaseHook.get_connection('google_drive_default')
+
+            except AirflowException:
+
+                raise GoogleDriveConnectionNotFoundException()
 
         else:
 
