@@ -19,7 +19,7 @@ and change the configuration settings provided as per your requirement. We shall
     
 2. **Register Storage:** Registering storage in **`miniBRS`** is similar to registering your service now instance. 
     Once you have decided which storage to use for your data ingestion, Specify the storage_type in the **`config`** 
-    variable. **`storage_type`** attribute of **`config`** variable takes values such as `"sftp", "s3", "dropbox", "mysql", "postgres", "mssql"`. 
+    variable. **`storage_type`** attribute of **`config`** variable takes values such as `"sftp", "s3", "dropbox", "googledrive", "mysql", "postgres", "mssql"`. 
     
     Once you have specified the type now you need to provide the details of the storage in its specific connection id.
     For each supported storage platform **`miniBRS`** has a default connection id specific to it in the Connections table. 
