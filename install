@@ -687,6 +687,15 @@ def create_airflow_connection_dropbox_default():
                      executable='/bin/bash').communicate()
 
 
+def create_airflow_connection_googledrive_default():
+    env = os.environ
+    env['AIRFLOW_HOME'] = os.getcwd()
+    subprocess.Popen(["{} connections -a --conn_id google_drive_default --conn_type None --conn_login None --conn_extra '{}' --conn_password None"
+                     .format(context.get_airflow_executable(),json.dumps({"access_token": "<YOUR-ACCESS-TOKEN_HERE>","scope": "https://www.googleapis.com/auth/drive","token_type": "Bearer","expires_in": 3599,"refresh_token": "<YOUR-REFRESH-TOKEN_HERE>"}))], cwd=os.getcwd(), env=env,
+                     universal_newlines=True, stdout=subprocess.PIPE, shell=True,
+                     executable='/bin/bash').communicate()
+
+
 def create_configuration_variables():
 
     # 'config' variable
@@ -698,7 +707,7 @@ def create_configuration_variables():
             "tables": [],
             "start_date": "1day",
             "frequency": "hourly",
-            "threshold": 10000,
+            "threshold": 1000,
             "export_format": "xml",
             "storage_type": "sftp",
             "email": ""
@@ -754,6 +763,10 @@ def check_integrity():
         'plugins/mbrs/operators/servicenow_to_dropbox_transfer_operator.py',
         'plugins/mbrs/operators/servicenow_to_s3_transfer_operator.py',
         'plugins/mbrs/operators/servicenow_to_sftp_transfer_operator.py',
+        'plugins/mbrs/operators/servicenow_to_mysql_transfer_operator.py',
+        'plugins/mbrs/operators/servicenow_to_mssql_transfer_operator.py',
+        'plugins/mbrs/operators/servicenow_to_postgres_transfer_operator.py',
+        'plugins/mbrs/operators/servicenow_to_googledrive_transfer_operator.py',
         'plugins/mbrs/templates',
         'plugins/mbrs/templates/recovery_dashboard.html',
         'plugins/mbrs/utils',
@@ -938,6 +951,7 @@ if __name__ == '__main__':
         os.mkdir("{}/{}".format(os.getcwd(), 'dags'))
         airflow_resetdb(context)
 
+        create_airflow_connection_googledrive_default()
         create_airflow_connection_default_servicenow()
         create_airflow_connection_dropbox_default()
         create_airflow_connection_s3_default()
