@@ -6,13 +6,13 @@ Here we shall be describing the steps for generating the **`access_token`** for 
 
 1. Hit the following URL  [www.dropbox.com/developers](https://www.dropbox.com/developers) in your browser.  Click on the `App Console` button on the top right side of the webpage, It will take you to the dropbox login page, If you are not logged in else you will be redirected to **`App Console`** webpage. Sign in with your credentials and proceed.
  
-    ![](img/Dropbox1.png)
+    ![](img/dropbox/Dropbox1.png)
     
     <br/>
     
 2. Once the login is success, a `Create app` button appears in the `App Console` page. 
 
-    ![](img/Dropbox2.png) 
+    ![](img/dropbox/Dropbox2.png) 
     
     Click on the `Create app` button, You will see `DBX Platform` screen with various setting options listed. choose the values for the options as shown below: 
     
@@ -22,7 +22,7 @@ Here we shall be describing the steps for generating the **`access_token`** for 
     
     <br/>
     
-    ![](img/Dropbox3.png) 
+    ![](img/dropbox/Dropbox3.png) 
     
     <br/>
     
@@ -30,13 +30,13 @@ Here we shall be describing the steps for generating the **`access_token`** for 
     
     <br/>
     
-    ![](img/Dropbox5.png)
+    ![](img/dropbox/Dropbox5.png)
  
     <br/>
     
 3. Click on the newly created app icon, In the `Settings` tab  hit the `Generate` button, This will generate a 64 character long **`access_token`**.
  
-    ![](img/Dropbox4.png)
+    ![](img/dropbox/Dropbox4.png)
     
     <br/>
     

@@ -136,6 +136,26 @@ connection. To generate `access_token` for you account please check out the foll
 
 **The absence of this connection id from the meta-database raises `DropboxConnectionNotFoundException`**
 
+#### google_drive_default:
+miniBRS provides you with an option to ingest your SaaS data to `Google Drive`, for this you need to generate `client id`,
+`client secret`, `access_token` and `refresh_token` for your google drive account. To generate `access_token` for your account 
+please check out the following Reference[<sup> \[3\] </sup>](#references). You need to add `client id` to `Login` field,
+`client secret` to `Password` field and `access_token`, `refresh_token` as a JSON structure to the `Extra` field of the
+`google_drive_default` connection id.
+
+```json
+{
+  "access_token": "<YOUR-ACCESS-TOKEN_HERE>", 
+  "scope": "https://www.googleapis.com/auth/drive", 
+  "token_type": "Bearer", 
+  "expires_in": 3599, 
+  "refresh_token": "<YOUR-REFRESH-TOKEN_HERE>"
+}
+```
+
+**The absence of this connection id from the meta-database raises `GoogleDriveConnectionNotFoundException`**
+
+
 #### mysql_default:
 This is a default connection used to store MySQL database credentials, If you want to use MySQL as a storage platform, you
 can store your MySQL database credentials in this connection. Add your database hostname in `Host` field, database name to
@@ -183,7 +203,7 @@ each attribute now.
   "tables": ["incident","problem","sc_request"], 
   "start_date": "1day", 
   "frequency": "hourly", 
-  "threshold": 10000, 
+  "threshold": 1000, 
   "export_format": "xml", 
   "storage_type": "dropbox", 
   "email": ""
@@ -215,7 +235,7 @@ each attribute now.
     
     <br/>
     
- - **threshold:** ```threshold``` is used to specify the threshold of records fetched from the ServiceNow instance. By default it is placed at its maximum value of 10000, placing a value greater than 10000 is not going to do any good, if the number of data records for a specific run exceeds the threshold, No data will be fetched for that period. In that case, try to change 
+ - **threshold:** ```threshold``` is used to specify the threshold of records fetched from the ServiceNow instance. By default it is placed at its maximum value of 1000, placing a value greater than 10000 is not going to do any good, if the number of data records for a specific run exceeds the threshold, No data will be fetched for that period. In that case, try to change 
     the ```frequency``` of your workflow to some lower value.
     
     <br/>
@@ -226,7 +246,8 @@ each attribute now.
     <br/>
     
  - **storage_type:** ```storage_type``` is used to specify the type of storage to be used for ingesting data, currently, miniBRS 
-    supports AmazonS3, DropBox, SFTP, MySQL, Postgres and SQL Server. The credentials of these storages are to be stored in Airflow Connections in their specific default connection_ids.
+    supports AmazonS3, DropBox, Google Drive, SFTP, MySQL, Postgres and SQL Server. The credentials of these storages are to be stored in Airflow Connections in their specific default connection_ids.
+    This variable takes values such as `"sftp", "s3", "dropbox", "googledrive", "mysql", "postgres", "mssql"`
     
     <br/>
     
@@ -284,5 +305,6 @@ app_password then you can proceed else checkout the References[<sup> \[3\] </sup
 ## References
 
 * [Apache Airflow : Documentation](https://airflow.apache.org/docs/stable)
-* [Generate DropBox Access Token](#)
+* [Generate DropBox Access Token](dropbox.md)
+* [Generate Google Drive access_token](googledrive.md)
 * [Generate Gmail App Password](https://support.google.com/accounts/answer/185833?hl=en)
