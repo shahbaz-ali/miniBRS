@@ -225,6 +225,10 @@ Manual Installation
     
             ~$ airflow connections -a --conn_id dropbox_default --conn_type None --conn_login None --conn_password None
             
+    * **google_drive_default :** This connection is used to store your `Google Drive` access_token
+    
+            ~$ airflow connections -a --conn_id google_drive_default --conn_type None --conn_login None --conn_password None --conn_extra '{"access_token": "<YOUR-ACCESS-TOKEN_HERE>","scope": "https://www.googleapis.com/auth/drive","token_type": "Bearer","expires_in": 3599,"refresh_token": "<YOUR-REFRESH-TOKEN_HERE>"}' 
+            
 9. **Create Default Variables:** Like default connections `miniBRS` also uses few default variables for its functioning
     hit copy paste for below command's
     
