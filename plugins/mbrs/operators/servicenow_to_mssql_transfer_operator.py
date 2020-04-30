@@ -74,7 +74,7 @@ class ParseFile():
 
     @staticmethod
     def get_n_objects(file_path):
-        """ This methos pareses the xaml file with the help of iterpase() method """
+        """ This method pareses the xml file with the help of iterpase() method """
         tree = ET.iterparse(file_path, events=('start', 'end'))
         for event, elem in tree:
             if event == 'start' and elem.tag != 'response' and elem.tag != 'result':
@@ -86,16 +86,15 @@ class ParseFile():
 
                 # check for markers
                 if tag in markers:  # pylint: disable=undefined-variable
-                    link = elem.find('link')
+                    value = elem.find('value')
 
-                    # check link for none -- sometimes the link will be None
-                    if link is None:
-                        incident[tag] = '\'Not present\''  # pylint: disable=undefined-variable
+                    # check value for none -- sometimes the value will be None
+                    if value is None:
+                        incident[tag] = '\'empty\''  # pylint: disable=undefined-variable
                     else:
-                        link_text = link.text
+                        value_text = value.text
                         # sometimes the text will be none
-                        incident[
-                            tag] = "'" + link_text + "'" if link_text is not None else "\'empty\'"  # pylint: disable=undefined-variable
+                        incident[tag] = "'" + value_text + "'" if value_text is not None else "\'empty\'"  # pylint: disable=undefined-variable
 
                 elif tag not in ('link', 'value'):
                     incident[tag] = "'" + str(text).strip() + "'"  # pylint: disable=undefined-variable
@@ -112,7 +111,7 @@ def get_query_with_col_size(column_names, values_for_size):
     count = len(column_names)  # or len(values_for_size) ,both are equal in length
     for i in range(count):
         data_type_size = len(values_for_size[i])
-        if data_type_size <= 3:  # sometimes the value of some columns are '0' i.e size 3 and sometomes it is 'None' i.e size 6
+        if data_type_size <= 3:  # sometimes the value of some columns are '0' i.e size 3 and sometimes it is 'None' i.e size 6
             data_type_size = 6
         sub_query += column_names[i] + " CHAR({}), ".format(data_type_size)
 
