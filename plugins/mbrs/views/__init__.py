@@ -1,6 +1,6 @@
 #   mbrs
 #   Copyright (c)Cloud Innovation Partners 2020.
-#   Author : Shahbaz Ali
+#   http://www.cloudinp.com
 
 from plugins.mbrs.modals.recovery_modals import FailedDagRun,Reason
 from airflow.settings import Session

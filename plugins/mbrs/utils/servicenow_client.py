@@ -1,6 +1,6 @@
-#  CloudBRS
-#  Copyright (c) SMnow 2019.
-#  Author : SA
+#  mbrs
+#  Copyright (c)Cloud Innovation Partners 2020.
+#  http://www.cloudinp.com
 
 import requests,base64,simplejson
 import logging

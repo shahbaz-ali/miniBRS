@@ -1,6 +1,6 @@
 #   mbrs
 #   Copyright (c)Cloud Innovation Partners 2020.
-#   Author : MAK
+#   http://www.cloudinp.com
 
 from plugins.mbrs.operators.common.servicenow_to_generic_transfer_operator import ServiceNowToGenericTransferOperator
 from plugins.mbrs.utils.exceptions import DropboxConnectionNotFoundException
