@@ -58,19 +58,15 @@ submission = ServiceNowToS3TransferOperator(task_id='send_data_to_submission',da
 
 {% elif data.storage_type == 'dropbox' %}
 submission = ServiceNowToDropboxTransferOperator(task_id='send_data_to_submission',dag=dag,snow_id ='servicenow_default',config = 'config',storage_conn_id = 'dropbox_default',table = table_name,execution_date={{"'"~data.execution_date~"'"}})
-{% endif %}
 
 {% elif data.storage_type == 'googledrive' %}
 submission = ServiceNowToGoogleDriveTransferOperator(task_id='send_data_to_submission',dag=dag,snow_id ='servicenow_default',config = 'config',storage_conn_id = 'dropbox_default',table = table_name,execution_date={{"'"~data.execution_date~"'"}})
-{% endif %}
 
 {% elif data.storage_type == 'mysql' %}
 submission = ServiceNowToMYSQLTransferOperator(task_id='send_data_to_submission',dag=dag,snow_id ='servicenow_default',config = 'config',storage_conn_id = 'dropbox_default',table = table_name,execution_date={{"'"~data.execution_date~"'"}})
-{% endif %}
 
 {% elif data.storage_type == 'mssql' %}
 submission = ServiceNowToMSSQLTransferOperator(task_id='send_data_to_submission',dag=dag,snow_id ='servicenow_default',config = 'config',storage_conn_id = 'dropbox_default',table = table_name,execution_date={{"'"~data.execution_date~"'"}})
-{% endif %}
 
 {% elif data.storage_type == 'postgres' %}
 submission = ServiceNowToPostgresqlTransferOperator(task_id='send_data_to_submission',dag=dag,snow_id ='servicenow_default',config = 'config',storage_conn_id = 'dropbox_default',table = table_name,execution_date={{"'"~data.execution_date~"'"}})
