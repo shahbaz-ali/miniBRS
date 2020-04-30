@@ -17,6 +17,14 @@ from plugins.mbrs.operators.servicenow_to_sftp_transfer_operator import ServiceN
 from plugins.mbrs.operators.servicenow_to_s3_transfer_operator import ServiceNowToS3TransferOperator
 {% elif data.storage_type == 'dropbox' %}
 from plugins.mbrs.operators.servicenow_to_dropbox_transfer_operator import ServiceNowToDropboxTransferOperator
+{% elif data.storage_type == 'googledrive' %}
+from plugins.mbrs.operators.servicenow_to_googledrive_transfer_operator import ServiceNowToGoogleDriveTransferOperator
+{% elif data.storage_type == 'mysql' %}
+from plugins.mbrs.operators.servicenow_to_mysql_transfer_operator import ServiceNowToMYSQLTransferOperator
+{% elif data.storage_type == 'mssql' %}
+from plugins.mbrs.operators.servicenow_to_mssql_transfer_operator import ServiceNowToMSSQLTransferOperator
+{% elif data.storage_type == 'postgres' %}
+from plugins.mbrs.operators.servicenow_to_postgres_transfer_operator import ServiceNowToPostgresqlTransferOperator
 {% endif %}
 
 {%block dag%}
@@ -50,8 +58,19 @@ submission = ServiceNowToS3TransferOperator(task_id='send_data_to_submission',da
 
 {% elif data.storage_type == 'dropbox' %}
 submission = ServiceNowToDropboxTransferOperator(task_id='send_data_to_submission',dag=dag,snow_id ='servicenow_default',config = 'config',storage_conn_id = 'dropbox_default',table = table_name,execution_date={{"'"~data.execution_date~"'"}})
-{% endif %}
 
+{% elif data.storage_type == 'googledrive' %}
+submission = ServiceNowToGoogleDriveTransferOperator(task_id='send_data_to_submission',dag=dag,snow_id ='servicenow_default',config = 'config',storage_conn_id = 'dropbox_default',table = table_name,execution_date={{"'"~data.execution_date~"'"}})
+
+{% elif data.storage_type == 'mysql' %}
+submission = ServiceNowToMYSQLTransferOperator(task_id='send_data_to_submission',dag=dag,snow_id ='servicenow_default',config = 'config',storage_conn_id = 'dropbox_default',table = table_name,execution_date={{"'"~data.execution_date~"'"}})
+
+{% elif data.storage_type == 'mssql' %}
+submission = ServiceNowToMSSQLTransferOperator(task_id='send_data_to_submission',dag=dag,snow_id ='servicenow_default',config = 'config',storage_conn_id = 'dropbox_default',table = table_name,execution_date={{"'"~data.execution_date~"'"}})
+
+{% elif data.storage_type == 'postgres' %}
+submission = ServiceNowToPostgresqlTransferOperator(task_id='send_data_to_submission',dag=dag,snow_id ='servicenow_default',config = 'config',storage_conn_id = 'dropbox_default',table = table_name,execution_date={{"'"~data.execution_date~"'"}})
+{% endif %}
 
 {% endblock %}
 
