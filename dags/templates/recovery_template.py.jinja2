@@ -53,6 +53,7 @@ count_equals_zero = DummyOperator(task_id='count_is_zero',dag=dag)
 
 {% if data.storage_type == 'sftp' %}
 submission = ServiceNowToSFTPTransferOperator(task_id='send_data_to_submission',dag=dag,snow_id ='servicenow_default',config = 'config',storage_conn_id = 'sftp_default',table = table_name,execution_date={{"'"~data.execution_date~"'"}})
+
 {% elif data.storage_type == 's3' %}
 submission = ServiceNowToS3TransferOperator(task_id='send_data_to_submission',dag=dag,snow_id ='servicenow_default',config = 'config',storage_conn_id = 's3_default',table = table_name,execution_date={{"'"~data.execution_date~"'"}})
 
