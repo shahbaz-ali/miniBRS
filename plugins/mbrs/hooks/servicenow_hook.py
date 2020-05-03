@@ -116,6 +116,21 @@ class ServiceNowHook(BaseHook):
 
         return self.snow_cred.password
 
+    def get_table_schema(self, table_name):
+        """
+        This method is used to get the schema of the table
+        :param table_name: service now table name
+        :return: Generator Object
+        """
+
+        client = ServiceNowClient(
+                auth_type=0,
+                host=self.snow_cred.host,
+                login=self.snow_cred.login,
+                password=self.snow_cred.password
+            )
+
+        return client.table_schema(table_name)
 
     def api_call(self, method='GET',route=None,query_params=None,accept=None):
 
