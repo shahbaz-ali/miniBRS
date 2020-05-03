@@ -3,6 +3,8 @@
 #  http://www.cloudinp.com
 
 import requests,base64,simplejson
+from xml.etree import ElementTree
+import xml
 import logging
 
 
@@ -314,6 +316,39 @@ class ServiceNowClient(object):
 
     def get_refresh_token(self):
         return self.refresh_token
+
+    def table_schema(self, table_name):
+        """
+        This method is used to get the schema of the service now table
+        :param table_name:
+        :type str
+        :return: list containing dict() items with column name, type and size
+        :type : generator
+        """
+        default_query_args = {
+            'headers': {
+                'Authorization': "Basic {}".format(str(base64.b64encode(str(self.login + ":" + self.password).encode()),
+                                                    'utf-8')) if self.auth_type == 0 else f"Bearer {self.token}"
+            },
+            'route': f'/{table_name}.do?SCHEMA',
+        }
+        response = requests.get(
+            url=f"{self.host}{default_query_args.get('route')}",
+            headers=default_query_args.get('headers'),
+        )
+        root = ElementTree.fromstring(response.text)
+
+        if root.tag == 'error':
+            raise ServiceNowAPIException(root.text)
+
+        for element in root.findall('element'):
+            yield {
+                'name': element.get('name'),
+                'type': element.get('internal_type'),
+                'size': element.get('max_length')
+            }
+
+
 
 
 
