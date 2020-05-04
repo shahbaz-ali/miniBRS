@@ -130,6 +130,17 @@ class ServiceNowToGenericTransferOperator(BaseOperator):
         raise NotImplementedError
 
 
+    def _get_table_schema(self):
+        """
+        returns the schema of table
+        """
+        service_now_hook = ServiceNowHook(
+            host=self.snow_host,
+            login=self.snow_login,
+            password=self.snow_password
+        )
+        return  service_now_hook.get_table_schema(table_name=self.table)
+
     def _get_records(self,context):
         """
         This method actually gets the data from a particular servicenow table for a particular time period
