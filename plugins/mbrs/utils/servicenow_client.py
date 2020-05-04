@@ -336,7 +336,10 @@ class ServiceNowClient(object):
             url=f"{self.host}{default_query_args.get('route')}",
             headers=default_query_args.get('headers'),
         )
-        root = ElementTree.fromstring(response.text)
+        try:
+            root = ElementTree.fromstring(response.text)
+        except ElementTree.ParseError:
+            raise ServiceNowHibernateException()
 
         if root.tag == 'error':
             raise ServiceNowAPIException(root.text)
@@ -345,6 +348,7 @@ class ServiceNowClient(object):
             yield {
                 'name': element.get('name'),
                 'type': element.get('internal_type'),
+                'reference':None if not element.get('reference_table') else element.get('reference_table'),
                 'size': element.get('max_length')
             }
 
@@ -456,3 +460,7 @@ class ServiceNowAPIException(ServiceNowException):
             return "ServiceNowAPIException, {}".format(self.message)
         else:
             return "ServiceNowAPIException has been raised"
+
+if __name__ == '__main__':
+    serviceclient=ServiceNowClient(host='https://dev82663.service-now.com',login='admin',password='Flipkart@36')
+    print(list(serviceclient.table_schema('incident')))

@@ -47,8 +47,10 @@ class ServiceNowToMYSQLTransferOperator(ServiceNowToGenericTransferOperator):
         file_name = l_file_path[l_file_path.rfind('/') + 1:]
         table_name = file_name.split('_')[0]  # gets the table name from file name
 
+        # get the schema of table
+        columns_labels=Parser.get_columns()
         # parse the file
-        n_objects = ParseFile.get_n_objects(l_file_path)
+        n_objects = Parser.get_n_objects(l_file_path)
 
         # store the data in the database
         cols = list(next(n_objects).keys())
@@ -58,16 +60,32 @@ class ServiceNowToMYSQLTransferOperator(ServiceNowToGenericTransferOperator):
 
 
 # pylint: disable=too-few-public-methods
-class ParseFile():
+class Parser():
     """
     This class is actually responsible for parsing the xml data with the help of generators,
     and creates an object for each parsed data
     """
 
-    global tree, markers, incident
+    global tree, markers, row_object
 
-    markers = ['opened_by', 'sys_domain', 'caller_id', 'assignment_group']
-    incident = {}
+    markers = []
+    row_object = {}
+
+    # get column labels and create markers
+    @staticmethod
+    def get_columns():  # call this before get_incident_object() method
+
+        tree1 = ET.iterparse("schema.xml", events=('start', 'end'))
+        col_names = []
+        for event, elem in tree1:
+            if event == 'start' and elem.tag == 'element':
+                attrib = list(elem.attrib.values())[0]
+                if 'reference_table' in elem.attrib.keys():
+                    markers.append(attrib)
+                if attrib == 'order':  # order is a keyword in sql, shows syntax error in query
+                    attrib = attrib + "_"
+                col_names.append(attrib)
+        return col_names
 
     @staticmethod
     def get_n_objects(file_path):
@@ -87,19 +105,18 @@ class ParseFile():
 
                     # check value for none -- sometimes the value will be None
                     if value is None:
-                        incident[tag] = '\'Not present\''  # pylint: disable=undefined-variable
+                        row_object[tag] = None  # set the none value fot that column  # pylint: disable=undefined-variable
                     else:
                         value_text = value.text
                         # sometimes the text will be none
-                        incident[
-                            tag] = "'" + value_text + "'" if value_text is not None else "\'Not present\'"  # pylint: disable=undefined-variable
+                        row_object[tag] = "'" + value_text + "'" if value_text is not None else None  # pylint: disable=undefined-variable
 
                 elif tag not in ('link', 'value'):
-                    incident[tag] = "'" + str(text).strip() + "'"  # pylint: disable=undefined-variable
+                    row_object[tag] = "'" + str(text).strip() + "'" if text is not None else None # the text of some tags are none for example  <hold_reason />, <approval_history /> e.tc.  # pylint: disable=undefined-variable
 
             elif event == 'end':
                 if elem.tag == 'result':
-                    yield incident  # pylint: disable=undefined-variable
+                    yield row_object  # pylint: disable=undefined-variable
                     elem.clear()  # without this the memory usage goes very high
 
 
