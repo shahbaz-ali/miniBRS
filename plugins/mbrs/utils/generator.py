@@ -10,6 +10,7 @@ creation of `rest` connection for the application use.
 """
 
 import inspect
+import re
 import json
 import os
 import socket
@@ -37,7 +38,8 @@ from plugins.mbrs.utils.exceptions import (PostgreSQLConnectionNotFoundException
                                            InvalidStorageTypeException,
                                            DropboxConnectionNotFoundException,
                                            MSSQLConnectionNotFoundException,
-                                           GoogleDriveConnectionNotFoundException)
+                                           GoogleDriveConnectionNotFoundException,
+                                           InvalidTableName)
 
 bootstrap = False
 servicenow_default = None
@@ -276,30 +278,36 @@ def create_dags():
     email_notify_required = is_email_notification_required()
 
     try:
+        regex = re.compile('[@=+!#$%^&*()<>?/\|}{~:;]')
         for table in config.get('tables'):
-            with open(configuration.get_airflow_home() + '/dags/templates/main.py.jinja2') as file_:
-                template = Template(file_.read())
+            if regex.search(table) is None and ',' not in table\
+                    and table not in ('.','-','_','') and not table.__contains__(' ') :
+                with open(configuration.get_airflow_home() + '/dags/templates/main.py.jinja2') as file_:
+                    template = Template(file_.read())
 
-            if dag_creation_dates.get(table) is not None:
-                start_date = dag_creation_dates.get(table)
+                if dag_creation_dates.get(table) is not None:
+                    start_date = dag_creation_dates.get(table)
+                else:
+                    start_date = get_start_date(config.get('start_date'))
+                    dag_creation_dates[table] = str(start_date)
+
+                output = template.render(
+                    data={
+                        'dag_id': table,
+                        'frequency': config.get('frequency'),
+                        'storage_type': storage_type,
+                        'start_date': start_date,
+                        'email_required': email_notify_required
+                    }
+                )
+
+                with open(configuration.get_airflow_home() + '/dags/generated/dag_'
+                          + '{}'.format(table).replace(' ', '_') + '.py', 'w') as f:
+                    f.write(output)
+                    new_dags.append('dag_' + '{}'.format(table).replace(' ', '_') + '.py')
+
             else:
-                start_date = get_start_date(config.get('start_date'))
-                dag_creation_dates[table] = str(start_date)
-
-            output = template.render(
-                data={
-                    'dag_id': table,
-                    'frequency': config.get('frequency'),
-                    'storage_type': storage_type,
-                    'start_date': start_date,
-                    'email_required': email_notify_required
-                }
-            )
-
-            with open(configuration.get_airflow_home() + '/dags/generated/dag_'
-                      + '{}'.format(table).replace(' ', '_') + '.py', 'w') as f:
-                f.write(output)
-                new_dags.append('dag_' + '{}'.format(table).replace(' ', '_') + '.py')
+                raise InvalidTableName("table name must not contain special characters or spaces.")
 
         if len(r_config) != 0:
 
@@ -358,9 +366,11 @@ def create_dags():
             msg = "psycopg2.errors.UniqueViolation duplicate key value violates unique constraint"
             LoggingMixin().log.warning(msg)
 
-    except AirflowException:
-
-        raise ConfigVariableNotFoundException()
+    except AirflowException as e:
+        if isinstance(e,InvalidTableName):
+            raise
+        else:
+            raise ConfigVariableNotFoundException()
 
 
 def is_servicenow_default_connection_available():
