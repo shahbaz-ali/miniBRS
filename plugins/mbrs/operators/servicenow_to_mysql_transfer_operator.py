@@ -45,18 +45,18 @@ class ServiceNowToMYSQLTransferOperator(ServiceNowToGenericTransferOperator):
         l_file_path = self.file_name
         LoggingMixin().log.warning(f'FILE PATH {l_file_path}')
         file_name = l_file_path[l_file_path.rfind('/') + 1:]
-        table_name = file_name.split('_')[0]  # gets the table name from file name
+        table_name = self.table
 
-        # get the schema of table
-        columns_labels=Parser.get_columns()
+        # get the col labels of table
+        column_labels=Parser.get_col_lables(self._get_table_schema())
+
         # parse the file
         n_objects = Parser.get_n_objects(l_file_path)
 
         # store the data in the database
-        cols = list(next(n_objects).keys())
         storage = Storage(login, password, host, database_name, table_name, port)
-        storage.create_table(cols)
-        storage.insert_data(n_objects, cols)
+        storage.create_table(column_labels)
+        storage.insert_data(n_objects)
 
 
 # pylint: disable=too-few-public-methods
@@ -66,26 +66,21 @@ class Parser():
     and creates an object for each parsed data
     """
 
-    global tree, markers, row_object
+    global tree, markers, row_object, col_labels
 
     markers = []
     row_object = {}
+    col_labels=[]
 
-    # get column labels and create markers
     @staticmethod
-    def get_columns():  # call this before get_incident_object() method
-
-        tree1 = ET.iterparse("schema.xml", events=('start', 'end'))
-        col_names = []
-        for event, elem in tree1:
-            if event == 'start' and elem.tag == 'element':
-                attrib = list(elem.attrib.values())[0]
-                if 'reference_table' in elem.attrib.keys():
-                    markers.append(attrib)
-                if attrib == 'order':  # order is a keyword in sql, shows syntax error in query
-                    attrib = attrib + "_"
-                col_names.append(attrib)
-        return col_names
+    def get_col_lables(schema_generator):
+        for obj in schema_generator:
+            name = obj['name']
+            name = name+"_" if name == 'order' else name  # marker for order is order_
+            col_labels.append(name)
+            if obj['reference'] is not None:
+                markers.append(name)
+        return col_labels
 
     @staticmethod
     def get_n_objects(file_path):
@@ -109,14 +104,14 @@ class Parser():
                     else:
                         value_text = value.text
                         # sometimes the text will be none
-                        row_object[tag] = "'" + value_text + "'" if value_text is not None else None  # pylint: disable=undefined-variable
+                        row_object[tag] = "'" + value_text + "'" if value_text is not None else None
 
                 elif tag not in ('link', 'value'):
-                    row_object[tag] = "'" + str(text).strip() + "'" if text is not None else None # the text of some tags are none for example  <hold_reason />, <approval_history /> e.tc.  # pylint: disable=undefined-variable
+                    row_object[tag] = "'" + str(text).strip() + "'" if text is not None else None # the text of some tags are none for example  <hold_reason />, <approval_history /> e.tc.
 
             elif event == 'end':
                 if elem.tag == 'result':
-                    yield row_object  # pylint: disable=undefined-variable
+                    yield row_object
                     elem.clear()  # without this the memory usage goes very high
 
 
@@ -137,6 +132,7 @@ class Storage():
         """
         This method creates the table in the database(database name is specified in the parameter
         self.database_name )
+        -create columns for all labels, including the extra one on schema
         """
         conn = ms.connect(host=self.host, user=self.login, password=self.password,
                           port=self.port, db=self.database_name)
@@ -148,20 +144,27 @@ class Storage():
         conn.commit()
         conn.close()
 
-    def insert_data(self, n_objects, column_names):
-        """ This method inserts the parsed data(n_objects) in the MySql database"""
+    def insert_data(self, n_objects):
+        """
+        This method inserts the parsed data(n_objects) in the MySql database
+        insert data only for those columns which are present in the dict i.e n_objects
+        """
         lst = []
         step = 100
         conn = ms.connect(host=self.host, user=self.login, password=self.password,
                           database=self.database_name)
         cursor = conn.cursor()
 
+        intial_record = next(n_objects)
+        column_names = list(intial_record.keys())
         placeholders = ''.join("%s," * len(column_names))
         placeholders = placeholders.strip(',')
         column_names = ",".join(column_names)
 
         sql = "INSERT INTO {} ({}) VALUES ({})".format(self.table_name, column_names, placeholders)
-        # print(sql)
+        # insert intial_record first
+        cursor.execute(sql, tuple(intial_record.values()))
+        conn.commit()
 
         while True:  # traverse to the end of the generator object
             itr = itertools.islice(n_objects, 0, step)
