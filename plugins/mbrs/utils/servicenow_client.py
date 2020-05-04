@@ -3,6 +3,8 @@
 #  http://www.cloudinp.com
 
 import requests,base64,simplejson
+from xml.etree import ElementTree
+import xml
 import logging
 
 
@@ -315,6 +317,43 @@ class ServiceNowClient(object):
     def get_refresh_token(self):
         return self.refresh_token
 
+    def table_schema(self, table_name):
+        """
+        This method is used to get the schema of the service now table
+        :param table_name:
+        :type str
+        :return: list containing dict() items with column name, type and size
+        :type : generator
+        """
+        default_query_args = {
+            'headers': {
+                'Authorization': "Basic {}".format(str(base64.b64encode(str(self.login + ":" + self.password).encode()),
+                                                    'utf-8')) if self.auth_type == 0 else f"Bearer {self.token}"
+            },
+            'route': f'/{table_name}.do?SCHEMA',
+        }
+        response = requests.get(
+            url=f"{self.host}{default_query_args.get('route')}",
+            headers=default_query_args.get('headers'),
+        )
+        try:
+            root = ElementTree.fromstring(response.text)
+        except ElementTree.ParseError:
+            raise ServiceNowHibernateException()
+
+        if root.tag == 'error':
+            raise ServiceNowAPIException(root.text)
+
+        for element in root.findall('element'):
+            yield {
+                'name': element.get('name'),
+                'type': element.get('internal_type'),
+                'reference':None if not element.get('reference_table') else element.get('reference_table'),
+                'size': element.get('max_length')
+            }
+
+
+
 
 
     def api_call(self,method='GET',route=None,query_params=None,accept=None):
@@ -421,3 +460,7 @@ class ServiceNowAPIException(ServiceNowException):
             return "ServiceNowAPIException, {}".format(self.message)
         else:
             return "ServiceNowAPIException has been raised"
+
+if __name__ == '__main__':
+    serviceclient=ServiceNowClient(host='https://dev82663.service-now.com',login='admin',password='Flipkart@36')
+    print(list(serviceclient.table_schema('incident')))

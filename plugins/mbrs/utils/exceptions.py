@@ -262,3 +262,17 @@ class GoogleDriveConnectionNotFoundException(AirflowException):
             return "GoogleDriveConnectionNotFoundException, {}".format(self.message)
         else:
             return "GoogleDriveConnectionNotFoundException has been raised"
+
+class InvalidTableName(AirflowException):
+
+    def __init__(self, *args):
+        if args:
+            self.message = args[0]
+        else:
+            self.message = "Invalid Table Name"
+
+    def __str__(self):
+        if self.message:
+            return f"InvalidTableName, {self.message}"
+        else:
+            return "InvalidTableName has been raised"

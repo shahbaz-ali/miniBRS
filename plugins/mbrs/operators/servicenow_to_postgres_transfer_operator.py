@@ -46,29 +46,42 @@ class ServiceNowToPostgresqlTransferOperator(ServiceNowToGenericTransferOperator
         l_file_path = self.file_name
         LoggingMixin().log.warning(f'FILE PATH {l_file_path}')
         file_name = l_file_path[l_file_path.rfind('/') + 1:]
-        table_name = file_name.split('_')[0]  # gets the table name from file name
+        table_name = self.table
+
+        # get the col labels of table
+        column_labels = Parser.get_col_lables(self._get_table_schema())
 
         # parse the file
-        n_objects = ParseFile.get_n_objects(l_file_path)
+        n_objects = Parser.get_n_objects(l_file_path)
 
         # store the data in the database
-        cols = list(next(n_objects).keys())
         storage = Storage(login, password, host, database_name, table_name, port)
-        storage.create_table(cols)
-        storage.insert_data(n_objects, cols)
+        storage.create_table(column_labels)
+        storage.insert_data(n_objects)
 
 
 # pylint: disable=too-few-public-methods
-class ParseFile():
+class Parser():
     """
        This class is actually responsible for parsing the xml data with the help of generators,
        and creates an object for each parsed data
     """
 
-    global tree, markers, incident
+    global tree, markers, row_object, col_labels
 
-    markers = ['opened_by', 'sys_domain', 'caller_id', 'assignment_group']
-    incident = {}
+    markers = []
+    row_object = {}
+    col_labels = []
+
+    @staticmethod
+    def get_col_lables(schema_generator):
+        for obj in schema_generator:
+            name = obj['name']
+            name = name + "_" if name == 'order' else name  # marker for order is order_
+            col_labels.append(name)
+            if obj['reference'] is not None:
+                markers.append(name)
+        return col_labels
 
     @staticmethod
     def get_n_objects(file_path):
@@ -88,19 +101,19 @@ class ParseFile():
 
                     # check value for none -- sometimes the value will be None
                     if value is None:
-                        incident[tag] = '\'Not present\''  # pylint: disable=undefined-variable
+                        row_object[tag] = None
                     else:
                         value_text = value.text
                         # sometimes the text will be none
-                        incident[
-                            tag] = "'" + value_text + "'" if value_text is not None else "\'Not present\'"  # pylint: disable=undefined-variable
+                        row_object[tag] = "'" + value_text + "'" if value_text is not None else None
 
                 elif tag not in ('link', 'value'):
-                    incident[tag] = "'" + str(text).strip() + "'"  # pylint: disable=undefined-variable
+                    row_object[tag] = "'" + str(
+                        text).strip() + "'" if text is not None else None  # the text of some tags are none for example  <hold_reason />, <approval_history /> e.tc.
 
             elif event == 'end':
                 if elem.tag == 'result':
-                    yield incident  # pylint: disable=undefined-variable
+                    yield row_object
                     elem.clear()  # without this the memory usage goes very high
 
 
@@ -132,7 +145,7 @@ class Storage():
         conn.commit()
         conn.close()
 
-    def insert_data(self, n_objects, column_names):
+    def insert_data(self, n_objects):
         """ This method inserts the parsed data(n_objects) in the Postgresql database"""
         lst = []
         step = 100
@@ -140,12 +153,16 @@ class Storage():
                           database=self.database_name)
         cursor = conn.cursor()
 
+        intial_record = next(n_objects)
+        column_names = list(intial_record.keys())
         placeholders = ''.join("%s," * len(column_names))
         placeholders = placeholders.strip(',')
         column_names = ",".join(column_names)
 
         sql = "INSERT INTO {} ({}) VALUES ({})".format(self.table_name, column_names, placeholders)
-        # print(sql)
+        # insert intial_record first
+        cursor.execute(sql, tuple(intial_record.values()))
+        conn.commit()
 
         while True:  # traverse to the end of the generator object
             itr = itertools.islice(n_objects, 0, step)
