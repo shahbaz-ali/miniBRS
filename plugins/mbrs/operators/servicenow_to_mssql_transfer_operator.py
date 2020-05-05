@@ -45,32 +45,44 @@ class ServiceNowToMSSQLTransferOperator(ServiceNowToGenericTransferOperator):
         l_file_path = self.file_name
         LoggingMixin().log.warning(f'FILE PATH {l_file_path}')
         file_name = l_file_path[l_file_path.rfind('/') + 1:]
-        table_name = file_name.split('_')[0]  # gets the table name from file name
+        table_name = self.table
+
+        # get the col labels of table
+        column_labels = Parser.get_col_lables(self._get_table_schema())
 
         # parse the file
-        n_objects = ParseFile.get_n_objects(l_file_path)
+        n_objects = Parser.get_n_objects(l_file_path)
 
         # store the data in the database
-        obj = next(n_objects)
-        cols = list(obj.keys())
-        values_for_size = list(obj.values())
         storage = Storage(login, password, host, database_name, table_name, port)
-        # storage.create_database()
-        storage.create_table(cols, values_for_size)
-        storage.insert_data(n_objects, cols)
+        intial_record = next(n_objects)
+        cols_keys = list(intial_record.keys())
+        values_for_size = list(intial_record.values())
+        storage.create_table(column_labels, values_for_size, cols_keys)
+        storage.insert_data(n_objects, intial_record)
 
 
-# pylint: disable=too-few-public-methods
-class ParseFile():
+class Parser():
     """
     This class is actually responsible for parsing the xml data with the help of generators,
     and creates an object for each parsed data
     """
 
-    global tree, markers, incident
+    global tree, markers, row_object, col_labels
 
-    markers = ['opened_by', 'sys_domain', 'caller_id', 'assignment_group']
-    incident = {}
+    markers = []
+    row_object = {}
+    col_labels = []
+
+    @staticmethod
+    def get_col_lables(schema_generator):
+        for obj in schema_generator:
+            name = obj['name']
+            name = name + "_" if name == 'order' else name  # marker for order is order_
+            col_labels.append(name)
+            if obj['reference'] is not None:
+                markers.append(name)
+        return col_labels
 
     @staticmethod
     def get_n_objects(file_path):
@@ -90,32 +102,40 @@ class ParseFile():
 
                     # check value for none -- sometimes the value will be None
                     if value is None:
-                        incident[tag] = '\'empty\''  # pylint: disable=undefined-variable
+                        row_object[tag] = None  # pylint: disable=undefined-variable
                     else:
                         value_text = value.text
                         # sometimes the text will be none
-                        incident[tag] = "'" + value_text + "'" if value_text is not None else "\'empty\'"  # pylint: disable=undefined-variable
+                        row_object[tag] = "'" + value_text + "'" if value_text is not None else None
 
                 elif tag not in ('link', 'value'):
-                    incident[tag] = "'" + str(text).strip() + "'"  # pylint: disable=undefined-variable
+                    row_object[tag] = "'" + str(
+                        text).strip() + "'" if text is not None else None  # the text of some tags are none for example  <hold_reason />, <approval_history /> e.tc.
 
             elif event == 'end':
                 if elem.tag == 'result':
-                    yield incident  # pylint: disable=undefined-variable
+                    yield row_object  # pylint: disable=undefined-variable
                     elem.clear()  # without this the memory usage goes very high
 
 
-def get_query_with_col_size(column_names, values_for_size):
+def get_query_with_col_size(column_names, values_for_size, cols_keys):
     """This method returns a query with column size """
     sub_query = ''
-    count = len(column_names)  # or len(values_for_size) ,both are equal in length
-    for i in range(count):
-        data_type_size = len(values_for_size[i])
-        if data_type_size <= 3:  # sometimes the value of some columns are '0' i.e size 3 and sometimes it is 'None' i.e size 6
-            data_type_size = 6
-        sub_query += column_names[i] + " CHAR({}), ".format(data_type_size)
+    i = 0
+    for col in column_names:
 
-    return sub_query
+        if col in cols_keys:
+            value = values_for_size[i]
+            data_type_size = len(value) if value is not None else 40
+            data_type_size= 12 if data_type_size <=3 else data_type_size
+            #print(col + "---" + str(value) + "---" + str(data_type_size))
+            sub_query += col + " CHAR({}), ".format(data_type_size)
+            i += 1
+        else:
+            print(col)
+            sub_query += col + " CHAR(20), "
+
+    return sub_query[:-2]
 
 
 class Storage():
@@ -131,7 +151,7 @@ class Storage():
         self.table_name = table_name
         self.port = port
 
-    def create_table(self, column_names, values_for_size):
+    def create_table(self, column_names, values_for_size, cols_keys):
         """
         This method creates the table in the database(database name is specified in the parameter
         self.database_name )
@@ -140,27 +160,30 @@ class Storage():
         conn = ms.connect(host=self.host, user=self.login, password=self.password,
                           port=self.port, database=self.database_name)
         cursor = conn.cursor()
-        sub_query = get_query_with_col_size(column_names, values_for_size)
+        sub_query = get_query_with_col_size(column_names, values_for_size, cols_keys)
         check_if_table_exists = "if not exists (select * from sysobjects where name='{}')".format(self.table_name)
         sql = check_if_table_exists + ' CREATE TABLE {} ({});'.format(self.table_name, sub_query)
-        # print(sql)
+        print(sql)
         cursor.execute(sql)
         conn.commit()
         conn.close()
 
-    def insert_data(self, n_objects, column_names):
+    def insert_data(self, n_objects, intial_record):
         """ This method inserts the parsed data(n_objects) in the MsSql database"""
         lst = []
         step = 100
         conn = ms.connect(server=self.host, user=self.login, password=self.password, database=self.database_name)
         cursor = conn.cursor()
 
+        column_names = list(intial_record.keys())
         placeholders = ''.join("%s," * len(column_names))
         placeholders = placeholders.strip(',')
         column_names = ",".join(column_names)
 
         sql = "INSERT INTO {} ({}) VALUES ({})".format(self.table_name, column_names, placeholders)
-        # print(sql)
+        # insert intial_record first
+        cursor.execute(sql, tuple(intial_record.values()))
+        conn.commit()
 
         while True:  # traverse to the end of the generator object
             itr = itertools.islice(n_objects, 0, step)
