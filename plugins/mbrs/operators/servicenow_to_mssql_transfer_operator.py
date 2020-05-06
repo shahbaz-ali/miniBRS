@@ -14,6 +14,7 @@ from plugins.mbrs.operators.common.servicenow_to_generic_transfer_operator \
 from plugins.mbrs.utils.exceptions import MSSQLConnectionNotFoundException
 
 count = 0
+col_size = []
 
 
 class ServiceNowToMSSQLTransferOperator(ServiceNowToGenericTransferOperator):
@@ -47,19 +48,17 @@ class ServiceNowToMSSQLTransferOperator(ServiceNowToGenericTransferOperator):
         file_name = l_file_path[l_file_path.rfind('/') + 1:]
         table_name = self.table
 
-        # get the col labels of table
-        column_labels = Parser.get_col_lables(self._get_table_schema())
+        # get the col labels and size of a table
+        column_labels, size = Parser.get_col_lables(self._get_table_schema())
 
         # parse the file
         n_objects = Parser.get_n_objects(l_file_path)
 
         # store the data in the database
         storage = Storage(login, password, host, database_name, table_name, port)
-        intial_record = next(n_objects)
-        cols_keys = list(intial_record.keys())
-        values_for_size = list(intial_record.values())
-        storage.create_table(column_labels, values_for_size, cols_keys)
-        storage.insert_data(n_objects, intial_record)
+
+        storage.create_table(column_labels, size)
+        storage.insert_data(n_objects)
 
 
 class Parser():
@@ -69,7 +68,6 @@ class Parser():
     """
 
     global tree, markers, row_object, col_labels
-
     markers = []
     row_object = {}
     col_labels = []
@@ -78,11 +76,16 @@ class Parser():
     def get_col_lables(schema_generator):
         for obj in schema_generator:
             name = obj['name']
+            size = int(obj['size']) + 2  # 2 is for the extra quotes i.e 'abcdef'
+            if name == 'sys_tags':
+                size = 40
             name = name + "_" if name == 'order' else name  # marker for order is order_
             col_labels.append(name)
+
             if obj['reference'] is not None:
                 markers.append(name)
-        return col_labels
+            col_size.append(size)
+        return col_labels, col_size
 
     @staticmethod
     def get_n_objects(file_path):
@@ -109,8 +112,7 @@ class Parser():
                         row_object[tag] = "'" + value_text + "'" if value_text is not None else None
 
                 elif tag not in ('link', 'value'):
-                    row_object[tag] = "'" + str(
-                        text).strip() + "'" if text is not None else None  # the text of some tags are none for example  <hold_reason />, <approval_history /> e.tc.
+                    row_object[tag] = "'" + str(text).strip() + "'" if text is not None else None  # the text of some tags are none for example  <hold_reason />, <approval_history /> e.tc.
 
             elif event == 'end':
                 if elem.tag == 'result':
@@ -118,22 +120,18 @@ class Parser():
                     elem.clear()  # without this the memory usage goes very high
 
 
-def get_query_with_col_size(column_names, values_for_size, cols_keys):
+def get_query_with_col_size(column_names, size):
     """This method returns a query with column size """
-    sub_query = ''
-    i = 0
-    for col in column_names:
 
-        if col in cols_keys:
-            value = values_for_size[i]
-            data_type_size = len(value) if value is not None else 40
-            data_type_size= 12 if data_type_size <=3 else data_type_size
-            #print(col + "---" + str(value) + "---" + str(data_type_size))
-            sub_query += col + " CHAR({}), ".format(data_type_size)
-            i += 1
+    sub_query = ''
+    upto=len(column_names)
+
+    for i in range(upto):
+        size_ = size[i]
+        if size_ > 60000:
+            sub_query += column_names[i] + " TEXT, "
         else:
-            print(col)
-            sub_query += col + " CHAR(20), "
+            sub_query += column_names[i] + f" varchar({size_}), "
 
     return sub_query[:-2]
 
@@ -151,7 +149,7 @@ class Storage():
         self.table_name = table_name
         self.port = port
 
-    def create_table(self, column_names, values_for_size, cols_keys):
+    def create_table(self, column_names, size):
         """
         This method creates the table in the database(database name is specified in the parameter
         self.database_name )
@@ -160,7 +158,7 @@ class Storage():
         conn = ms.connect(host=self.host, user=self.login, password=self.password,
                           port=self.port, database=self.database_name)
         cursor = conn.cursor()
-        sub_query = get_query_with_col_size(column_names, values_for_size, cols_keys)
+        sub_query = get_query_with_col_size(column_names, size)
         check_if_table_exists = "if not exists (select * from sysobjects where name='{}')".format(self.table_name)
         sql = check_if_table_exists + ' CREATE TABLE {} ({});'.format(self.table_name, sub_query)
         print(sql)
@@ -168,17 +166,20 @@ class Storage():
         conn.commit()
         conn.close()
 
-    def insert_data(self, n_objects, intial_record):
+    def insert_data(self, n_objects):
         """ This method inserts the parsed data(n_objects) in the MsSql database"""
         lst = []
         step = 100
         conn = ms.connect(server=self.host, user=self.login, password=self.password, database=self.database_name)
         cursor = conn.cursor()
 
+        intial_record = next(n_objects)
         column_names = list(intial_record.keys())
         placeholders = ''.join("%s," * len(column_names))
         placeholders = placeholders.strip(',')
         column_names = ",".join(column_names)
+        print(f"TOTAL placeholders: {len(placeholders.split(','))}")
+
 
         sql = "INSERT INTO {} ({}) VALUES ({})".format(self.table_name, column_names, placeholders)
         # insert intial_record first
