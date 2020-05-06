@@ -15,6 +15,7 @@ from plugins.mbrs.operators.common.servicenow_to_generic_transfer_operator impor
 
 from plugins.mbrs.utils.exceptions import PostgreSQLConnectionNotFoundException
 
+col_size = []
 
 class ServiceNowToPostgresqlTransferOperator(ServiceNowToGenericTransferOperator):
     """
@@ -48,15 +49,16 @@ class ServiceNowToPostgresqlTransferOperator(ServiceNowToGenericTransferOperator
         file_name = l_file_path[l_file_path.rfind('/') + 1:]
         table_name = self.table
 
-        # get the col labels of table
-        column_labels = Parser.get_col_lables(self._get_table_schema())
+        # get the col labels and size of a table
+        column_labels, size = Parser.get_col_lables(self._get_table_schema())
 
         # parse the file
         n_objects = Parser.get_n_objects(l_file_path)
 
         # store the data in the database
         storage = Storage(login, password, host, database_name, table_name, port)
-        storage.create_table(column_labels)
+
+        storage.create_table(column_labels, size)
         storage.insert_data(n_objects)
 
 
@@ -77,11 +79,16 @@ class Parser():
     def get_col_lables(schema_generator):
         for obj in schema_generator:
             name = obj['name']
+            size = int(obj['size']) + 2  # 2 is for the extra quotes i.e 'abcdef'
+            if name == 'sys_tags':
+                size = 40
             name = name + "_" if name == 'order' else name  # marker for order is order_
             col_labels.append(name)
+
             if obj['reference'] is not None:
                 markers.append(name)
-        return col_labels
+            col_size.append(size)
+        return col_labels, col_size
 
     @staticmethod
     def get_n_objects(file_path):
@@ -116,6 +123,20 @@ class Parser():
                     yield row_object
                     elem.clear()  # without this the memory usage goes very high
 
+def get_query_with_col_size(column_names, size):
+    """This method returns a query with column size """
+
+    sub_query = ''
+    upto=len(column_names)
+
+    for i in range(upto):
+        size_ = size[i]
+        if size_ > 60000:
+            sub_query +=column_names[i]+ " TEXT, "
+        else:
+            sub_query += column_names[i] + f" varchar({size_}), "
+
+    return sub_query[:-2]
 
 class Storage():
     """
@@ -130,7 +151,7 @@ class Storage():
         self.table_name = table_name
         self.port = port
 
-    def create_table(self, column_names):
+    def create_table(self, column_names, size):
         """
         This method creates the table in the database(database name is specified in the parameter
         self.database_name )
@@ -138,8 +159,9 @@ class Storage():
         conn = pg.connect(host=self.host, port=self.port, user=self.login, password=self.password,
                           database=self.database_name)
         cursor = conn.cursor()
-        column_names = ','.join(col_name + " CHAR(100)" for col_name in column_names)
-        sql = 'CREATE TABLE IF NOT EXISTS {} ({})'.format(self.table_name, column_names)
+        sub_query = get_query_with_col_size(column_names, size)
+        #column_names = ','.join(col_name + " CHAR(100)" for col_name in column_names)
+        sql = 'CREATE TABLE IF NOT EXISTS {} ({})'.format(self.table_name, sub_query)
         print(sql)
         cursor.execute(sql)
         conn.commit()
