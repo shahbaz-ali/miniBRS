@@ -129,8 +129,10 @@ def get_query_with_col_size(column_names, size):
 
     for i in range(upto):
         size_ = size[i]
-        if size_ > 60000:
-            sub_query +=column_names[i]+ " TEXT, "
+        if size_ > 255 and size_ < 65535:
+            sub_query += column_names[i] + " TEXT, "
+        elif size_ >= 65535:
+            sub_query += column_names[i] + " MEDIUMTEXT, "
         else:
             sub_query += column_names[i] + f" varchar({size_}), "
 
