@@ -1,6 +1,6 @@
 #   mbrs
 #   Copyright (c)Cloud Innovation Partners 2020.
-#   Author : MAK
+#   http://www.cloudinp.com
 
 from airflow.operators.bash_operator import BaseOperator
 from airflow.utils.decorators import apply_defaults
@@ -130,6 +130,17 @@ class ServiceNowToGenericTransferOperator(BaseOperator):
         raise NotImplementedError
 
 
+    def _get_table_schema(self):
+        """
+        returns the schema of table
+        """
+        service_now_hook = ServiceNowHook(
+            host=self.snow_host,
+            login=self.snow_login,
+            password=self.snow_password
+        )
+        return  service_now_hook.get_table_schema(table_name=self.table)
+
     def _get_records(self,context):
         """
         This method actually gets the data from a particular servicenow table for a particular time period
@@ -158,7 +169,7 @@ class ServiceNowToGenericTransferOperator(BaseOperator):
                                                       self.table
                                                       )
 
-        bk_file_name = '{}_{}_{}.xml'.format(self.table, str(self.from_time), str(self.to_time))
+        bk_file_name = '{}_{}_{}.xml'.format(self.table, str(self.from_time), str(self.to_time)).replace(' ', '_')
 
         bk_file_path = l_dir_backup_path + bk_file_name
 

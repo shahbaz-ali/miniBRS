@@ -1,6 +1,6 @@
 #   mbrs
 #   Copyright (c)Cloud Innovation Partners 2020.
-#   Author : Shahbaz Ali
+#   http://www.cloudinp.com
 
 from plugins.mbrs.utils.dates import cron_presets
 from airflow import DAG
@@ -22,7 +22,17 @@ from plugins.mbrs.operators.servicenow_to_sftp_transfer_operator import ServiceN
 from plugins.mbrs.operators.servicenow_to_s3_transfer_operator import ServiceNowToS3TransferOperator
 {% elif data.storage_type == 'dropbox' %}
 from plugins.mbrs.operators.servicenow_to_dropbox_transfer_operator import ServiceNowToDropboxTransferOperator
+{% elif data.storage_type == 'postgres' %}
+from plugins.mbrs.operators.servicenow_to_postgres_transfer_operator import ServiceNowToPostgresqlTransferOperator
+{% elif data.storage_type == 'mysql' %}
+from plugins.mbrs.operators.servicenow_to_mysql_transfer_operator import ServiceNowToMYSQLTransferOperator
+{% elif data.storage_type == 'mssql' %}
+from plugins.mbrs.operators.servicenow_to_mssql_transfer_operator import ServiceNowToMSSQLTransferOperator
+{% elif data.storage_type == 'googledrive' %}
+from plugins.mbrs.operators.servicenow_to_googledrive_transfer_operator import ServiceNowToGoogleDriveTransferOperator
+
 {% endif %}
+
 
 {%block dag%}
 table_name = {{"'"~data.dag_id~"'"}}
@@ -42,6 +52,8 @@ dag_id=str({{ "'"~data.dag_id|string~"'" }}).replace(' ','_').replace('.','_Dot_
             'execution_date' : {% raw %}'{{ execution_date }}'{% endraw %}
         }
 )
+
+
 start = DummyOperator(task_id='start',dag=dag)
 end = DummyOperator(task_id='end',dag=dag,trigger_rule='none_failed')
 record_count = BranchPythonOperator(task_id='fetch_record_count',python_callable=fetch_servicenow_record_count,provide_context=True,dag=dag,op_kwargs={'table_name': table_name,'execution_date':dag.params.get('execution_date')})
@@ -59,7 +71,17 @@ submission = ServiceNowToSFTPTransferOperator(task_id='send_data_to_submission',
 submission = ServiceNowToS3TransferOperator(task_id='send_data_to_submission',dag=dag,snow_id ='servicenow_default',config = 'config',storage_conn_id = 's3_default',table = table_name,execution_date=dag.params.get('execution_date'))
 {% elif data.storage_type == 'dropbox' %}
 submission = ServiceNowToDropboxTransferOperator(task_id='send_data_to_submission',dag=dag,snow_id ='servicenow_default',config = 'config',storage_conn_id = 'dropbox_default',table = table_name,execution_date=dag.params.get('execution_date'))
+{% elif data.storage_type == 'postgres' %}
+submission = ServiceNowToPostgresqlTransferOperator(task_id='send_data_to_submission',dag=dag,snow_id ='servicenow_default',config = 'config',storage_conn_id = 'postgres_default',table = table_name,execution_date=dag.params.get('execution_date'))
+{% elif data.storage_type == 'mysql' %}
+submission = ServiceNowToMYSQLTransferOperator(task_id='send_data_to_submission',dag=dag,snow_id ='servicenow_default',config = 'config',storage_conn_id = 'mysql_default',table = table_name,execution_date=dag.params.get('execution_date'))
+{% elif data.storage_type == 'mssql' %}
+submission = ServiceNowToMSSQLTransferOperator(task_id='send_data_to_submission',dag=dag,snow_id ='servicenow_default',config = 'config',storage_conn_id = 'mssql_default',table = table_name,execution_date=dag.params.get('execution_date'))
+{% elif data.storage_type == 'googledrive' %}
+submission = ServiceNowToGoogleDriveTransferOperator(task_id='send_data_to_submission',dag=dag,snow_id ='servicenow_default',config = 'config',storage_conn_id = 'google_drive_default',table = table_name,execution_date=dag.params.get('execution_date'))
+
 {% endif %}
+
 
 {% endblock %}
 

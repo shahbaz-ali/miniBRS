@@ -1,6 +1,6 @@
 #   mbrs
 #   Copyright (c)Cloud Innovation Partners 2020.
-#   Author : Shahbaz Ali
+#   http://www.cloudinp.com
 
 from airflow.exceptions import AirflowException
 
@@ -188,3 +188,91 @@ class InvalidArguments(AirflowException):
             return "InvalidArguments, {}".format(self.message)
         else:
             return "InvalidArguments has been raised"
+
+class PostgreSQLConnectionNotFoundException(AirflowException):
+    '''
+    @:exception: PostgreSQLConnectionNotFoundException, raised if no connection
+    with connection id 'postgres_default' is found in the meta-database
+    '''
+    
+    def __init__(self, *args):
+        if args:
+            self.message = args[0]
+        else:
+            self.message = "No connection with id 'postgres_default' defined"
+
+    def __str__(self):
+        if self.message:
+            return "PostgreSQLConnectionNotFoundException, {}".format(self.message)
+        else:
+            return "PostgreSQLConnectionNotFoundException has been raised"
+          
+          
+class MYSQLConnectionNotFoundException(AirflowException):
+    '''
+    @:exception: MYSQLConnectionNotFoundException, raised if no connection
+    with connection id 'mysql_default' is found in the meta-database
+    '''
+
+    def __init__(self, *args):
+        if args:
+            self.message = args[0]
+        else:
+            self.message = "No connection with id 'mysql_default' defined"
+
+    def __str__(self):
+        if self.message:
+            return "MYSQLConnectionNotFoundException, {}".format(self.message)
+        else:
+            return "MYSQLConnectionNotFoundException has been raised"
+
+class MSSQLConnectionNotFoundException(AirflowException):
+    '''
+    @:exception: MSSQLConnectionNotFoundException, raised if no connection
+    with connection id 'mssql_default' is found in the meta-database
+    '''
+
+    def __init__(self, *args):
+        if args:
+            self.message = args[0]
+        else:
+            self.message = "No connection with id 'mssql_default' defined"
+
+    def __str__(self):
+        if self.message:
+            return "MSSQLConnectionNotFoundException, {}".format(self.message)
+        else:
+            return "MSSQLConnectionNotFoundException has been raised"
+
+
+class GoogleDriveConnectionNotFoundException(AirflowException):
+    '''
+    @:exception: GoogleDriveConnectionNotFoundException, raised if no connection
+    with connection id 'googel_drive_default' is found in the meta-database
+    '''
+
+    def __init__(self, *args):
+        if args:
+            self.message = args[0]
+        else:
+            self.message = "No connection with id 'googel_drive_default' defined"
+
+    def __str__(self):
+        if self.message:
+            return "GoogleDriveConnectionNotFoundException, {}".format(self.message)
+        else:
+            return "GoogleDriveConnectionNotFoundException has been raised"
+
+class InvalidTableName(AirflowException):
+
+    def __init__(self, *args):
+        if args:
+            self.message = args[0]
+        else:
+            self.message = "Invalid Table Name"
+
+    def __str__(self):
+        if self.message:
+            return f"InvalidTableName, {self.message}"
+        else:
+            return "InvalidTableName has been raised"
